@@ -51,20 +51,27 @@ export default function DivisasMVP() {
   };
 
   const loadDashboard = async () => {
-    try {
-      // Contar mensajes de hoy (si tienes la tabla messages)
-      const hoy = new Date().toISOString().split('T')[0];
-      const { count } = await supabase
-        .from('messages')
-        .select('*', { count: 'exact', head: true })
-        .gte('created_at', hoy);
+  try {
+    // Contar sesiones únicas (números únicos) de hoy
+    const hoy = new Date().toISOString().split('T')[0];
+    
+    const { data, error } = await supabase
+      .from('chat_memory')
+      .select('session_id')
+      .gte('created_at', hoy);
 
-      setDashboard({ consultasHoy: count || 0 });
-    } catch (error) {
-      console.error('Error cargando dashboard:', error);
-      setDashboard({ consultasHoy: 0 });
-    }
-  };
+    if (error) throw error;
+
+    // Contar session_id únicos
+    const sessionesUnicas = new Set(data?.map(item => item.session_id) || []);
+    const consultasHoy = sessionesUnicas.size;
+
+    setDashboard({ consultasHoy });
+  } catch (error) {
+    console.error('Error cargando dashboard:', error);
+    setDashboard({ consultasHoy: 0 });
+  }
+};
 
   const updateDivisa = async (divisa: Divisa) => {
     setLoading(true);
