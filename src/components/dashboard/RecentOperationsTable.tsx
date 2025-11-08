@@ -2,6 +2,7 @@
 
 import React from 'react';
 import { motion } from 'framer-motion';
+import { ExportButton } from '@/components/ui/ExportButton';
 import type { RecentOperation } from '@/types';
 
 interface RecentOperationsTableProps {
@@ -36,7 +37,7 @@ export function RecentOperationsTable({ operations, isLoading }: RecentOperation
       <div className="absolute inset-0 rounded-3xl bg-gradient-to-br from-white/60 to-white/30 dark:from-gray-800/60 dark:to-gray-900/30 backdrop-blur-xl" />
 
       <div className="relative bg-white/90 dark:bg-gray-800/90 backdrop-blur-sm rounded-3xl shadow-xl border border-gray-100 dark:border-gray-700 p-6 sm:p-8 hover:shadow-2xl transition-all duration-500">
-        <div className="flex justify-between items-center mb-6">
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
           <div>
             <h3 className="text-xl font-bold bg-gradient-to-r from-gray-900 to-gray-600 dark:from-white dark:to-gray-300 bg-clip-text text-transparent">
               Operaciones Recientes
@@ -45,13 +46,30 @@ export function RecentOperationsTable({ operations, isLoading }: RecentOperation
               Últimas 7 transacciones
             </p>
           </div>
-          <motion.div
-            className="w-12 h-12 rounded-2xl bg-gradient-to-br from-blue-400 to-indigo-600 flex items-center justify-center shadow-lg"
-            whileHover={{ scale: 1.1, rotate: -5 }}
-            transition={{ type: "spring", stiffness: 400 }}
-          >
-            <span className="text-2xl">🔄</span>
-          </motion.div>
+          <div className="flex items-center gap-3">
+            <ExportButton
+              data={operations}
+              filename="operaciones_recientes"
+              sheetName="Operaciones"
+              variant="compact"
+              headers={{
+                numero_operacion: 'Nro Operación',
+                created_at_formatted: 'Fecha',
+                usuario_telegram_nombre: 'Cliente',
+                entregado: 'Entregó',
+                recibido: 'Recibió',
+                ganancia_bruta_usd: 'Ganancia (USD)',
+                estado: 'Estado'
+              }}
+            />
+            <motion.div
+              className="w-12 h-12 rounded-2xl bg-gradient-to-br from-blue-400 to-indigo-600 flex items-center justify-center shadow-lg"
+              whileHover={{ scale: 1.1, rotate: -5 }}
+              transition={{ type: "spring", stiffness: 400 }}
+            >
+              <span className="text-2xl">🔄</span>
+            </motion.div>
+          </div>
         </div>
 
         <div className="overflow-x-auto -mx-6 sm:mx-0">

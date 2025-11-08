@@ -2,8 +2,9 @@
 
 import React from 'react';
 import { motion } from 'framer-motion';
-import { Users, UserCheck, TrendingUp, Activity } from 'lucide-react';
+import { Users, UserCheck, TrendingUp, Activity, Download } from 'lucide-react';
 import { InfoWidget } from '@/components/ui/InfoWidget';
+import { exportToExcelMultiSheet, getTimestampForFilename } from '@/lib/utils/exportUtils';
 import type { EstadisticasGenerales, SuscripcionCotizacion, User, CotizacionCambioLog, LoadingState } from '@/types';
 
 interface AnalyticsTabProps {
@@ -15,6 +16,49 @@ interface AnalyticsTabProps {
 }
 
 export function AnalyticsTab({ estadisticas, suscripciones, users, cotizaciones, loading }: AnalyticsTabProps) {
+  const handleExportAll = () => {
+    const timestamp = getTimestampForFilename();
+
+    exportToExcelMultiSheet([
+      {
+        data: users,
+        sheetName: 'Usuarios',
+        headers: {
+          id: 'ID',
+          email: 'Email',
+          nombre: 'Nombre',
+          created_at: 'Fecha Registro',
+          ultimo_acceso: 'Último Acceso'
+        }
+      },
+      {
+        data: suscripciones,
+        sheetName: 'Suscripciones',
+        headers: {
+          id: 'ID',
+          chat_id: 'Chat ID',
+          usuario_nombre: 'Usuario',
+          activo: 'Activo',
+          created_at: 'Fecha Creación',
+          updated_at: 'Última Actualización'
+        }
+      },
+      {
+        data: cotizaciones,
+        sheetName: 'Cotizaciones',
+        headers: {
+          id: 'ID',
+          divisa_origen: 'Divisa Origen',
+          divisa_destino: 'Divisa Destino',
+          tasa_anterior: 'Tasa Anterior',
+          tasa_nueva: 'Tasa Nueva',
+          cambio_porcentaje: 'Cambio %',
+          created_at_formatted: 'Fecha'
+        }
+      }
+    ], `analytics_completo_${timestamp}`);
+  };
+
   return (
     <motion.div
       initial={{ opacity: 0 }}
@@ -23,13 +67,25 @@ export function AnalyticsTab({ estadisticas, suscripciones, users, cotizaciones,
       className="space-y-8"
     >
       {/* Header */}
-      <div>
-        <h2 className="text-3xl font-bold bg-gradient-to-r from-gray-900 to-gray-600 dark:from-white dark:to-gray-300 bg-clip-text text-transparent">
-          📈 Analytics & Estadísticas
-        </h2>
-        <p className="text-sm text-gray-600 dark:text-gray-400 mt-2">
-          Estadísticas generales y métricas avanzadas
-        </p>
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+        <div>
+          <h2 className="text-3xl font-bold bg-gradient-to-r from-gray-900 to-gray-600 dark:from-white dark:to-gray-300 bg-clip-text text-transparent">
+            📈 Analytics & Estadísticas
+          </h2>
+          <p className="text-sm text-gray-600 dark:text-gray-400 mt-2">
+            Estadísticas generales y métricas avanzadas
+          </p>
+        </div>
+        <motion.button
+          onClick={handleExportAll}
+          disabled={users.length === 0 && suscripciones.length === 0 && cotizaciones.length === 0}
+          whileHover={{ scale: 1.05 }}
+          whileTap={{ scale: 0.95 }}
+          className="flex items-center gap-2 px-5 py-2.5 rounded-xl bg-gradient-to-r from-blue-500 to-indigo-600 hover:from-blue-600 hover:to-indigo-700 text-white font-medium shadow-lg hover:shadow-xl disabled:opacity-50 disabled:cursor-not-allowed transition-all"
+        >
+          <Download className="w-5 h-5" />
+          <span>Exportar Todo</span>
+        </motion.button>
       </div>
 
       {/* Stats Grid */}

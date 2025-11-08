@@ -3,6 +3,7 @@
 import React from 'react';
 import { motion } from 'framer-motion';
 import { RefreshCw, Save } from 'lucide-react';
+import { ExportButton } from '@/components/ui/ExportButton';
 import type { Divisa, LoadingState } from '@/types';
 
 interface DivisasTabProps {
@@ -34,7 +35,7 @@ export function DivisasTab({ divisas, loading, onRefresh, onUpdate, onChange }: 
       className="space-y-6"
     >
       {/* Header */}
-      <div className="flex justify-between items-center">
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div>
           <h2 className="text-3xl font-bold bg-gradient-to-r from-gray-900 to-gray-600 dark:from-white dark:to-gray-300 bg-clip-text text-transparent">
             💰 Gestión de Divisas
@@ -43,16 +44,31 @@ export function DivisasTab({ divisas, loading, onRefresh, onUpdate, onChange }: 
             Administra precios y stock de las divisas
           </p>
         </div>
-        <motion.button
-          onClick={onRefresh}
-          disabled={loading.divisas}
-          whileHover={{ scale: 1.05 }}
-          whileTap={{ scale: 0.95 }}
-          className="bg-gradient-to-r from-gray-600 to-gray-700 hover:from-gray-700 hover:to-gray-800 disabled:from-gray-300 disabled:to-gray-400 text-white px-5 py-2.5 rounded-xl transition-all shadow-lg hover:shadow-xl flex items-center gap-2 font-medium"
-        >
-          <RefreshCw className={`w-4 h-4 ${loading.divisas ? 'animate-spin' : ''}`} />
-          <span>Actualizar</span>
-        </motion.button>
+        <div className="flex gap-3">
+          <motion.button
+            onClick={onRefresh}
+            disabled={loading.divisas}
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
+            className="bg-gradient-to-r from-gray-600 to-gray-700 hover:from-gray-700 hover:to-gray-800 disabled:from-gray-300 disabled:to-gray-400 text-white px-5 py-2.5 rounded-xl transition-all shadow-lg hover:shadow-xl flex items-center gap-2 font-medium"
+          >
+            <RefreshCw className={`w-4 h-4 ${loading.divisas ? 'animate-spin' : ''}`} />
+            <span>Actualizar</span>
+          </motion.button>
+          <ExportButton
+            data={divisas}
+            filename="divisas_stock"
+            sheetName="Divisas"
+            headers={{
+              id: 'ID',
+              divisa: 'Divisa',
+              precio_compra: 'Precio Compra',
+              precio_venta: 'Precio Venta',
+              stock_disponible: 'Stock Disponible',
+              updated_at: 'Última Actualización'
+            }}
+          />
+        </div>
       </div>
 
       {/* Table */}

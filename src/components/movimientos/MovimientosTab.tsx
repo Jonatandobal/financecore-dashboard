@@ -3,6 +3,7 @@
 import React from 'react';
 import { motion } from 'framer-motion';
 import { ArrowDownCircle, ArrowUpCircle, Settings, RefreshCw } from 'lucide-react';
+import { ExportButton } from '@/components/ui/ExportButton';
 import type { MovimientoDivisa, LoadingState } from '@/types';
 
 interface MovimientosTabProps {
@@ -46,7 +47,7 @@ export function MovimientosTab({ movimientos, loading, onRefresh }: MovimientosT
       className="space-y-6"
     >
       {/* Header */}
-      <div className="flex justify-between items-center">
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div>
           <h2 className="text-3xl font-bold bg-gradient-to-r from-gray-900 to-gray-600 dark:from-white dark:to-gray-300 bg-clip-text text-transparent">
             📦 Movimientos de Divisas
@@ -55,16 +56,32 @@ export function MovimientosTab({ movimientos, loading, onRefresh }: MovimientosT
             Historial de entradas, salidas y ajustes de stock
           </p>
         </div>
-        <motion.button
-          onClick={onRefresh}
-          disabled={loading.movimientos}
-          whileHover={{ scale: 1.05 }}
-          whileTap={{ scale: 0.95 }}
-          className="bg-gradient-to-r from-gray-600 to-gray-700 hover:from-gray-700 hover:to-gray-800 disabled:from-gray-300 disabled:to-gray-400 text-white px-5 py-2.5 rounded-xl transition-all shadow-lg hover:shadow-xl flex items-center gap-2 font-medium"
-        >
-          <RefreshCw className={`w-4 h-4 ${loading.movimientos ? 'animate-spin' : ''}`} />
-          <span>Actualizar</span>
-        </motion.button>
+        <div className="flex gap-3">
+          <motion.button
+            onClick={onRefresh}
+            disabled={loading.movimientos}
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
+            className="bg-gradient-to-r from-gray-600 to-gray-700 hover:from-gray-700 hover:to-gray-800 disabled:from-gray-300 disabled:to-gray-400 text-white px-5 py-2.5 rounded-xl transition-all shadow-lg hover:shadow-xl flex items-center gap-2 font-medium"
+          >
+            <RefreshCw className={`w-4 h-4 ${loading.movimientos ? 'animate-spin' : ''}`} />
+            <span>Actualizar</span>
+          </motion.button>
+          <ExportButton
+            data={movimientos}
+            filename="movimientos_divisas"
+            sheetName="Movimientos"
+            headers={{
+              id: 'ID',
+              divisa: 'Divisa',
+              tipo: 'Tipo',
+              cantidad: 'Cantidad',
+              motivo: 'Motivo',
+              usuario: 'Usuario',
+              created_at_formatted: 'Fecha'
+            }}
+          />
+        </div>
       </div>
 
       {/* Table */}
