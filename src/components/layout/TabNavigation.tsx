@@ -2,7 +2,7 @@
 
 import React from 'react';
 import { motion } from 'framer-motion';
-import { BarChart3, Coins, Bot } from 'lucide-react';
+import { BarChart3, Coins, Bot, TrendingUp, Package, Settings } from 'lucide-react';
 
 interface TabNavigationProps {
   activeTab: string;
@@ -11,14 +11,17 @@ interface TabNavigationProps {
 
 const tabs = [
   { id: 'dashboard', name: 'Dashboard', icon: BarChart3, emoji: '📊' },
+  { id: 'analytics', name: 'Analytics', icon: TrendingUp, emoji: '📈' },
   { id: 'divisas', name: 'Divisas', icon: Coins, emoji: '💰' },
-  { id: 'bot', name: 'Bot Status', icon: Bot, emoji: '🤖' },
+  { id: 'movimientos', name: 'Movimientos', icon: Package, emoji: '📦' },
+  { id: 'config', name: 'Config', icon: Settings, emoji: '⚙️' },
+  { id: 'bot', name: 'Bot', icon: Bot, emoji: '🤖' },
 ];
 
 export function TabNavigation({ activeTab, onTabChange }: TabNavigationProps) {
   return (
-    <div className="mb-8">
-      <div className="relative inline-flex p-1 bg-white/80 dark:bg-gray-800/80 backdrop-blur-xl rounded-2xl shadow-xl border border-gray-200 dark:border-gray-700">
+    <div className="mb-8 overflow-x-auto">
+      <div className="relative inline-flex p-1 bg-white/80 dark:bg-gray-800/80 backdrop-blur-xl rounded-2xl shadow-xl border border-gray-200 dark:border-gray-700 min-w-fit">
         {tabs.map((tab, index) => {
           const isActive = activeTab === tab.id;
           const Icon = tab.icon;

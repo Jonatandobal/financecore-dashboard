@@ -9,7 +9,13 @@ import type {
   RecentOperation,
   ProfitByCurrency,
   Divisa,
-  LoadingState
+  LoadingState,
+  MovimientoDivisa,
+  SuscripcionCotizacion,
+  User,
+  ConfigOperacion,
+  CotizacionCambioLog,
+  EstadisticasGenerales
 } from '@/types';
 
 export function useData() {
@@ -19,6 +25,12 @@ export function useData() {
     recentOps: false,
     profitByCurrency: false,
     divisas: false,
+    movimientos: false,
+    resumenes: false,
+    suscripciones: false,
+    users: false,
+    config: false,
+    cotizaciones: false,
   });
 
   const [kpis, setKpis] = useState<KpiData | null>(null);
@@ -26,6 +38,12 @@ export function useData() {
   const [recentOperations, setRecentOperations] = useState<RecentOperation[]>([]);
   const [profitByCurrency, setProfitByCurrency] = useState<ProfitByCurrency[]>([]);
   const [divisas, setDivisas] = useState<Divisa[]>([]);
+  const [movimientos, setMovimientos] = useState<MovimientoDivisa[]>([]);
+  const [suscripciones, setSuscripciones] = useState<SuscripcionCotizacion[]>([]);
+  const [users, setUsers] = useState<User[]>([]);
+  const [config, setConfig] = useState<ConfigOperacion[]>([]);
+  const [cotizaciones, setCotizaciones] = useState<CotizacionCambioLog[]>([]);
+  const [estadisticas, setEstadisticas] = useState<EstadisticasGenerales | null>(null);
 
   const loadKpisData = useCallback(async () => {
     setLoading(prev => ({ ...prev, kpis: true }));
@@ -217,6 +235,157 @@ export function useData() {
     setLoading(prev => ({ ...prev, divisas: false }));
   }, [loadDivisasData]);
 
+  // Nuevas funciones de carga de datos
+
+  const loadMovimientosData = useCallback(async (limit = 20) => {
+    setLoading(prev => ({ ...prev, movimientos: true }));
+    try {
+      const { data, error } = await supabase
+        .from('movimientos_divisas')
+        .select('*')
+        .order('created_at', { ascending: false })
+        .limit(limit);
+
+      if (error) throw error;
+
+      const formattedData = data?.map(mov => ({
+        ...mov,
+        created_at_formatted: new Date(mov.created_at).toLocaleString('es-AR', {
+          day: '2-digit',
+          month: '2-digit',
+          year: 'numeric',
+          hour: '2-digit',
+          minute: '2-digit'
+        })
+      })) || [];
+
+      setMovimientos(formattedData as MovimientoDivisa[]);
+    } catch (error: any) {
+      console.error('Error cargando movimientos:', error);
+      toast.error('Error cargando movimientos de divisas');
+      setMovimientos([]);
+    } finally {
+      setLoading(prev => ({ ...prev, movimientos: false }));
+    }
+  }, []);
+
+  const loadSuscripcionesData = useCallback(async () => {
+    setLoading(prev => ({ ...prev, suscripciones: true }));
+    try {
+      const { data, error } = await supabase
+        .from('suscripciones_cotizacion')
+        .select('*')
+        .order('created_at', { ascending: false });
+
+      if (error) throw error;
+      setSuscripciones(data || []);
+    } catch (error: any) {
+      console.error('Error cargando suscripciones:', error);
+      toast.error('Error cargando suscripciones');
+      setSuscripciones([]);
+    } finally {
+      setLoading(prev => ({ ...prev, suscripciones: false }));
+    }
+  }, []);
+
+  const loadUsersData = useCallback(async () => {
+    setLoading(prev => ({ ...prev, users: true }));
+    try {
+      const { data, error } = await supabase
+        .from('users')
+        .select('*')
+        .order('created_at', { ascending: false });
+
+      if (error) throw error;
+      setUsers(data || []);
+    } catch (error: any) {
+      console.error('Error cargando usuarios:', error);
+      toast.error('Error cargando usuarios');
+      setUsers([]);
+    } finally {
+      setLoading(prev => ({ ...prev, users: false }));
+    }
+  }, []);
+
+  const loadConfigData = useCallback(async () => {
+    setLoading(prev => ({ ...prev, config: true }));
+    try {
+      const { data, error } = await supabase
+        .from('config_operaciones')
+        .select('*')
+        .order('divisa', { ascending: true });
+
+      if (error) throw error;
+      setConfig(data || []);
+    } catch (error: any) {
+      console.error('Error cargando configuración:', error);
+      toast.error('Error cargando configuración');
+      setConfig([]);
+    } finally {
+      setLoading(prev => ({ ...prev, config: false }));
+    }
+  }, []);
+
+  const loadCotizacionesData = useCallback(async (limit = 10) => {
+    setLoading(prev => ({ ...prev, cotizaciones: true }));
+    try {
+      const { data, error } = await supabase
+        .from('cotizaciones_cambios_log')
+        .select('*')
+        .order('created_at', { ascending: false })
+        .limit(limit);
+
+      if (error) throw error;
+
+      const formattedData = data?.map(cot => ({
+        ...cot,
+        created_at_formatted: new Date(cot.created_at).toLocaleString('es-AR', {
+          day: '2-digit',
+          month: '2-digit',
+          hour: '2-digit',
+          minute: '2-digit'
+        })
+      })) || [];
+
+      setCotizaciones(formattedData as CotizacionCambioLog[]);
+    } catch (error: any) {
+      console.error('Error cargando cotizaciones:', error);
+      toast.error('Error cargando historial de cotizaciones');
+      setCotizaciones([]);
+    } finally {
+      setLoading(prev => ({ ...prev, cotizaciones: false }));
+    }
+  }, []);
+
+  const loadEstadisticasGenerales = useCallback(async () => {
+    try {
+      const monthStart = new Date(new Date().getFullYear(), new Date().getMonth(), 1).toISOString();
+
+      const [usersCount, suscripcionesCount, operacionesCount, movimientosCount] = await Promise.all([
+        supabase.from('users').select('*', { count: 'exact', head: true }),
+        supabase.from('suscripciones_cotizacion').select('*', { count: 'exact', head: true }).eq('activo', true),
+        supabase.from('operaciones_cambio').select('cantidad_entrada, cantidad_salida', { count: 'exact' }).gte('created_at', monthStart),
+        supabase.from('movimientos_divisas').select('*', { count: 'exact', head: true }).gte('created_at', monthStart)
+      ]);
+
+      let volumenTotal = 0;
+      operacionesCount.data?.forEach(op => {
+        volumenTotal += (op.cantidad_entrada || 0);
+      });
+
+      setEstadisticas({
+        total_usuarios: usersCount.count || 0,
+        total_suscripciones_activas: suscripcionesCount.count || 0,
+        total_operaciones_mes: operacionesCount.count || 0,
+        total_movimientos_mes: movimientosCount.count || 0,
+        volumen_total_operado: volumenTotal
+      });
+    } catch (error: any) {
+      console.error('Error cargando estadísticas generales:', error);
+      setEstadisticas(null);
+    }
+  }, []);
+
   return {
     loading,
     kpis,
@@ -224,9 +393,21 @@ export function useData() {
     recentOperations,
     profitByCurrency,
     divisas,
+    movimientos,
+    suscripciones,
+    users,
+    config,
+    cotizaciones,
+    estadisticas,
     setDivisas,
     loadAllDashboardData,
     loadDivisasData,
     updateDivisa,
+    loadMovimientosData,
+    loadSuscripcionesData,
+    loadUsersData,
+    loadConfigData,
+    loadCotizacionesData,
+    loadEstadisticasGenerales,
   };
 }

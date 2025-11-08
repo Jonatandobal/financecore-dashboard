@@ -7,6 +7,9 @@ import { TabNavigation } from '@/components/layout/TabNavigation';
 import { DashboardTab } from '@/components/dashboard/DashboardTab';
 import { DivisasTab } from '@/components/divisas/DivisasTab';
 import { BotTab } from '@/components/bot/BotTab';
+import { MovimientosTab } from '@/components/movimientos/MovimientosTab';
+import { AnalyticsTab } from '@/components/analytics/AnalyticsTab';
+import { ConfigTab } from '@/components/config/ConfigTab';
 import { useData } from '@/hooks/useData';
 import type { Divisa } from '@/types';
 
@@ -20,16 +23,43 @@ export default function HemisferiaDashboard() {
     recentOperations,
     profitByCurrency,
     divisas,
+    movimientos,
+    suscripciones,
+    users,
+    config,
+    cotizaciones,
+    estadisticas,
     setDivisas,
     loadAllDashboardData,
     loadDivisasData,
     updateDivisa,
+    loadMovimientosData,
+    loadSuscripcionesData,
+    loadUsersData,
+    loadConfigData,
+    loadCotizacionesData,
+    loadEstadisticasGenerales,
   } = useData();
 
   useEffect(() => {
     loadAllDashboardData();
     loadDivisasData();
-  }, [loadAllDashboardData, loadDivisasData]);
+    loadMovimientosData();
+    loadSuscripcionesData();
+    loadUsersData();
+    loadConfigData();
+    loadCotizacionesData();
+    loadEstadisticasGenerales();
+  }, [
+    loadAllDashboardData,
+    loadDivisasData,
+    loadMovimientosData,
+    loadSuscripcionesData,
+    loadUsersData,
+    loadConfigData,
+    loadCotizacionesData,
+    loadEstadisticasGenerales
+  ]);
 
   const handleDivisaChange = useCallback((index: number, field: keyof Divisa, value: string) => {
     const newDivisas = [...divisas];
@@ -66,6 +96,16 @@ export default function HemisferiaDashboard() {
             />
           )}
 
+          {activeTab === 'analytics' && (
+            <AnalyticsTab
+              estadisticas={estadisticas}
+              suscripciones={suscripciones}
+              users={users}
+              cotizaciones={cotizaciones}
+              loading={loading}
+            />
+          )}
+
           {activeTab === 'divisas' && (
             <DivisasTab
               divisas={divisas}
@@ -73,6 +113,22 @@ export default function HemisferiaDashboard() {
               onRefresh={loadDivisasData}
               onUpdate={updateDivisa}
               onChange={handleDivisaChange}
+            />
+          )}
+
+          {activeTab === 'movimientos' && (
+            <MovimientosTab
+              movimientos={movimientos}
+              loading={loading}
+              onRefresh={loadMovimientosData}
+            />
+          )}
+
+          {activeTab === 'config' && (
+            <ConfigTab
+              config={config}
+              loading={loading}
+              onRefresh={loadConfigData}
             />
           )}
 
