@@ -190,78 +190,15 @@ export function useData() {
   const loadPendingOperationsData = useCallback(async () => {
     setLoading(prev => ({ ...prev, pendingOps: true }));
     try {
-      // Primero intentar con la vista
-      let { data, error } = await supabase
+      // Intentar con la vista usando select *
+      const { data, error } = await supabase
         .from('operaciones_pendientes')
-        .select(`
-          id,
-          numero_operacion,
-          usuario_telegram_nombre,
-          usuario_telegram_id,
-          tipo_cambio,
-          cantidad_entrada,
-          cantidad_salida,
-          ganancia_bruta_usd,
-          estado,
-          created_at,
-          horas_transcurridas,
-          prioridad,
-          tasa_cambio,
-          precio_entrada,
-          precio_salida,
-          divisa_entrada,
-          divisa_salida
-        `)
+        .select('*')
         .order('horas_transcurridas', { ascending: false });
 
-      // Si falla, intentar con la tabla directamente
-      if (error) {
-        console.warn('Vista operaciones_pendientes no tiene todos los campos, usando tabla directa');
-        const result = await supabase
-          .from('operaciones_cambio')
-          .select(`
-            id,
-            numero_operacion,
-            usuario_telegram_nombre,
-            usuario_telegram_id,
-            tipo_cambio,
-            cantidad_entrada,
-            cantidad_salida,
-            ganancia_bruta_usd,
-            estado,
-            created_at,
-            tasa_cambio,
-            precio_entrada,
-            precio_salida,
-            divisa_entrada,
-            divisa_salida
-          `)
-          .neq('estado', 'completada')
-          .order('created_at', { ascending: false });
+      if (error) throw error;
 
-        if (result.error) throw result.error;
-
-        // Calcular horas transcurridas y prioridad manualmente
-        const enrichedData = result.data?.map(op => {
-          const createdAt = new Date(op.created_at);
-          const now = new Date();
-          const horasTranscurridas = (now.getTime() - createdAt.getTime()) / (1000 * 60 * 60);
-
-          let prioridad: 'ALTA' | 'MEDIA' | 'NORMAL' = 'NORMAL';
-          if (horasTranscurridas > 6) prioridad = 'ALTA';
-          else if (horasTranscurridas > 2) prioridad = 'MEDIA';
-
-          return {
-            ...op,
-            horas_transcurridas: horasTranscurridas,
-            prioridad
-          };
-        }) || [];
-
-        setPendingOperations(enrichedData as PendingOperation[]);
-      } else {
-        setPendingOperations(data as PendingOperation[] || []);
-      }
+      setPendingOperations(data as PendingOperation[] || []);
     } catch (error: any) {
       console.error('Error cargando operaciones pendientes:', error);
       toast.error('Error cargando operaciones pendientes');
