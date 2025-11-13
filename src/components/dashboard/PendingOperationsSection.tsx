@@ -171,17 +171,13 @@ export function PendingOperationsSection({ operations, isLoading, onCompleteOper
 
                       {/* Center section: Exchange info */}
                       <div className="flex-1 lg:text-center space-y-3">
+                        {/* Cantidades */}
                         <div className="inline-flex items-center gap-3 bg-white/60 dark:bg-gray-800/60 backdrop-blur-sm px-4 py-3 rounded-xl shadow-md">
                           <div className="text-right">
                             <p className="text-xs text-gray-500 dark:text-gray-400 font-medium">Entrega</p>
                             <p className="text-base font-bold text-gray-900 dark:text-white">
                               {op.cantidad_entrada.toLocaleString()} {op.divisa_entrada || ''}
                             </p>
-                            {op.precio_entrada && (
-                              <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">
-                                @ ${op.precio_entrada.toLocaleString()}
-                              </p>
-                            )}
                           </div>
                           <div className="text-2xl">
                             <span className="animate-pulse">→</span>
@@ -191,28 +187,53 @@ export function PendingOperationsSection({ operations, isLoading, onCompleteOper
                             <p className="text-base font-bold text-gray-900 dark:text-white">
                               {op.cantidad_salida.toLocaleString()} {op.divisa_salida || ''}
                             </p>
-                            {op.precio_salida && (
-                              <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">
-                                @ ${op.precio_salida.toLocaleString()}
-                              </p>
-                            )}
                           </div>
                         </div>
 
-                        {/* Tasa de cambio destacada */}
-                        <div className="inline-flex items-center gap-2 bg-gradient-to-r from-blue-500/10 to-indigo-500/10 dark:from-blue-600/20 dark:to-indigo-600/20 backdrop-blur-sm px-4 py-2 rounded-lg border border-blue-300/30 dark:border-blue-600/30 shadow-sm">
-                          <span className="text-xs font-medium text-gray-600 dark:text-gray-400">
-                            Tasa:
-                          </span>
-                          <span className="text-sm font-bold bg-gradient-to-r from-blue-600 to-indigo-600 dark:from-blue-400 dark:to-indigo-400 bg-clip-text text-transparent">
-                            {op.tasa_cambio
-                              ? `1 ${op.divisa_entrada} = ${op.tasa_cambio.toLocaleString(undefined, {
+                        {/* Tasas de Cambio */}
+                        <div className="flex flex-col gap-2">
+                          {/* Tasa General (si existe) */}
+                          {op.tasa_cambio && (
+                            <div className="inline-flex items-center gap-2 bg-gradient-to-r from-blue-500/10 to-indigo-500/10 dark:from-blue-600/20 dark:to-indigo-600/20 backdrop-blur-sm px-3 py-1.5 rounded-lg border border-blue-300/30 dark:border-blue-600/30 shadow-sm">
+                              <span className="text-xs font-bold bg-gradient-to-r from-blue-600 to-indigo-600 dark:from-blue-400 dark:to-indigo-400 bg-clip-text text-transparent">
+                                1 {op.divisa_entrada} = ${op.tasa_cambio.toLocaleString(undefined, {
                                   minimumFractionDigits: 2,
-                                  maximumFractionDigits: 2
-                                })} ${op.divisa_salida}`
-                              : op.tipo_cambio
-                            }
-                          </span>
+                                  maximumFractionDigits: 4
+                                })} {op.divisa_salida}
+                              </span>
+                            </div>
+                          )}
+
+                          {/* Tasas Específicas Compra/Venta */}
+                          <div className="flex items-center justify-center gap-2 flex-wrap">
+                            {op.precio_entrada && (
+                              <div className="inline-flex items-center gap-1.5 bg-gradient-to-r from-orange-500/15 to-red-500/15 dark:from-orange-600/25 dark:to-red-600/25 backdrop-blur-sm px-3 py-1.5 rounded-lg border border-orange-300/40 dark:border-orange-600/40 shadow-sm">
+                                <span className="text-xs font-medium text-gray-600 dark:text-gray-400">
+                                  Compra:
+                                </span>
+                                <span className="text-xs font-bold text-orange-700 dark:text-orange-400">
+                                  ${op.precio_entrada.toLocaleString(undefined, {
+                                    minimumFractionDigits: 2,
+                                    maximumFractionDigits: 2
+                                  })}
+                                </span>
+                              </div>
+                            )}
+
+                            {op.precio_salida && (
+                              <div className="inline-flex items-center gap-1.5 bg-gradient-to-r from-green-500/15 to-emerald-500/15 dark:from-green-600/25 dark:to-emerald-600/25 backdrop-blur-sm px-3 py-1.5 rounded-lg border border-green-300/40 dark:border-green-600/40 shadow-sm">
+                                <span className="text-xs font-medium text-gray-600 dark:text-gray-400">
+                                  Venta:
+                                </span>
+                                <span className="text-xs font-bold text-green-700 dark:text-green-400">
+                                  ${op.precio_salida.toLocaleString(undefined, {
+                                    minimumFractionDigits: 2,
+                                    maximumFractionDigits: 2
+                                  })}
+                                </span>
+                              </div>
+                            )}
+                          </div>
                         </div>
                       </div>
 
