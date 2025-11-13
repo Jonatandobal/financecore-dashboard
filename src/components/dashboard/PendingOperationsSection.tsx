@@ -177,21 +177,15 @@ export function PendingOperationsSection({ operations, isLoading, onCompleteOper
                           <div className="flex items-center justify-around gap-3">
                             <div className="text-center flex-1">
                               <p className="text-xs text-gray-500 dark:text-gray-400 font-medium mb-1">ENTREGA</p>
-                              <p className="text-base font-bold text-gray-900 dark:text-white">
-                                {op.cantidad_entrada.toLocaleString()}
-                              </p>
-                              <p className="text-xs font-semibold text-blue-600 dark:text-blue-400">
-                                {op.divisa_entrada || ''}
+                              <p className="text-lg font-bold text-gray-900 dark:text-white">
+                                {op.cantidad_entrada.toLocaleString()} <span className="text-sm font-bold text-blue-600 dark:text-blue-400">{op.divisa_entrada || ''}</span>
                               </p>
                             </div>
                             <div className="text-2xl text-gray-400">→</div>
                             <div className="text-center flex-1">
                               <p className="text-xs text-gray-500 dark:text-gray-400 font-medium mb-1">RECIBE</p>
-                              <p className="text-base font-bold text-gray-900 dark:text-white">
-                                {op.cantidad_salida.toLocaleString()}
-                              </p>
-                              <p className="text-xs font-semibold text-emerald-600 dark:text-emerald-400">
-                                {op.divisa_salida || ''}
+                              <p className="text-lg font-bold text-gray-900 dark:text-white">
+                                {op.cantidad_salida.toLocaleString()} <span className="text-sm font-bold text-emerald-600 dark:text-emerald-400">{op.divisa_salida || ''}</span>
                               </p>
                             </div>
                           </div>
