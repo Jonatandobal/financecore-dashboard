@@ -110,115 +110,117 @@ export function PendingOperationsSection({ operations, isLoading, onCompleteOper
 
         {/* Operations List - Ticket Style */}
         {isLoading ? (
-          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
+          <div className="space-y-4">
             {[...Array(3)].map((_, i) => (
               <div
                 key={i}
-                className="h-96 bg-gradient-to-r from-gray-200 via-gray-300 to-gray-200 dark:from-gray-700 dark:via-gray-600 dark:to-gray-700 rounded-2xl animate-pulse"
+                className="h-48 bg-gradient-to-r from-gray-200 via-gray-300 to-gray-200 dark:from-gray-700 dark:via-gray-600 dark:to-gray-700 rounded-2xl animate-pulse"
               />
             ))}
           </div>
         ) : operations.length > 0 ? (
-          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
+          <div className="space-y-4">
             {operations.map((op, index) => {
               const config = getPriorityConfig(op.prioridad, op.horas_transcurridas);
 
               return (
                 <motion.div
                   key={op.id}
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
+                  initial={{ opacity: 0, x: -20 }}
+                  animate={{ opacity: 1, x: 0 }}
                   transition={{ duration: 0.3, delay: index * 0.1 }}
                   className="relative group"
                 >
-                  {/* Ticket Container */}
+                  {/* Ticket Container - Horizontal */}
                   <div className={`relative bg-white dark:bg-gray-800 rounded-2xl shadow-xl border-2 ${config.borderColor} overflow-hidden hover:shadow-2xl transition-all duration-300`}>
-                    {/* Decorative top border with perforations effect */}
-                    <div className={`h-2 bg-gradient-to-r ${config.gradient.replace('/10', '/30')}`}>
-                      <div className="flex justify-around h-full">
-                        {[...Array(20)].map((_, i) => (
-                          <div key={i} className="w-0.5 h-full bg-white/50 dark:bg-gray-800/50" />
+                    {/* Decorative left border with perforations effect */}
+                    <div className={`absolute left-0 top-0 bottom-0 w-2 bg-gradient-to-b ${config.gradient.replace('/10', '/30')}`}>
+                      <div className="flex flex-col justify-around h-full">
+                        {[...Array(15)].map((_, i) => (
+                          <div key={i} className="h-0.5 w-full bg-white/50 dark:bg-gray-800/50" />
                         ))}
                       </div>
                     </div>
 
-                    {/* Ticket Header */}
-                    <div className="bg-gradient-to-br from-gray-50 to-white dark:from-gray-800 dark:to-gray-900 p-4 border-b-2 border-dashed border-gray-300 dark:border-gray-700">
-                      <div className="flex items-center justify-between mb-2">
-                        <div className="flex items-center gap-2">
-                          <span className="text-3xl font-black text-gray-900 dark:text-white font-mono">
-                            #{op.numero_operacion}
-                          </span>
-                          <span className={`px-2 py-1 rounded-md text-xs font-bold ${config.badgeColor} flex items-center gap-1`}>
-                            {config.icon} {op.prioridad}
-                          </span>
-                        </div>
-                        <div className="text-right">
-                          <p className="text-xs text-gray-500 dark:text-gray-400 flex items-center gap-1 justify-end">
-                            <Clock className="w-3 h-3" />
-                            {formatTime(op.horas_transcurridas)}
-                          </p>
-                          <span className="text-xs px-2 py-0.5 rounded bg-blue-100 text-blue-800 dark:bg-blue-900/40 dark:text-blue-300">
-                            {op.estado}
-                          </span>
-                        </div>
-                      </div>
-                      <div className="flex items-center gap-2 text-sm">
-                        <User className="w-4 h-4 text-gray-500 dark:text-gray-400" />
-                        <span className="font-medium text-gray-700 dark:text-gray-300 truncate">
-                          {op.usuario_telegram_nombre || 'Cliente'}
-                        </span>
-                      </div>
-                    </div>
-
-                    {/* Ticket Body */}
-                    <div className="p-4 space-y-4">
-                      {/* Transaction Details */}
-                      <div className="bg-gray-50 dark:bg-gray-900/50 rounded-xl p-4 space-y-3">
-                        <div className="flex items-center justify-between">
-                          <div className="text-left flex-1">
-                            <p className="text-xs text-gray-500 dark:text-gray-400 font-medium mb-1">ENTREGA</p>
-                            <p className="text-lg font-bold text-gray-900 dark:text-white">
-                              {op.cantidad_entrada.toLocaleString()}
-                            </p>
-                            <p className="text-xs font-semibold text-blue-600 dark:text-blue-400">
-                              {op.divisa_entrada || ''}
-                            </p>
+                    {/* Main Content - Horizontal Layout */}
+                    <div className="pl-4 pr-4 py-5 flex flex-col lg:flex-row lg:items-center gap-4">
+                      {/* Left Section: Header Info */}
+                      <div className="flex-shrink-0 lg:w-48">
+                        <div className="flex items-start gap-3">
+                          <div className="flex-1">
+                            <div className="flex items-center gap-2 mb-2">
+                              <span className="text-2xl font-black text-gray-900 dark:text-white font-mono">
+                                #{op.numero_operacion}
+                              </span>
+                              <span className={`px-2 py-0.5 rounded-md text-xs font-bold ${config.badgeColor} flex items-center gap-1`}>
+                                {config.icon}
+                              </span>
+                            </div>
+                            <div className="flex items-center gap-1.5 text-xs text-gray-500 dark:text-gray-400 mb-1">
+                              <Clock className="w-3 h-3" />
+                              <span>{formatTime(op.horas_transcurridas)}</span>
+                            </div>
+                            <span className="inline-block text-xs px-2 py-0.5 rounded bg-blue-100 text-blue-800 dark:bg-blue-900/40 dark:text-blue-300 mb-2">
+                              {op.estado}
+                            </span>
+                            <div className="flex items-center gap-1.5 text-sm">
+                              <User className="w-3.5 h-3.5 text-gray-500 dark:text-gray-400" />
+                              <span className="font-medium text-gray-700 dark:text-gray-300 truncate text-xs">
+                                {op.usuario_telegram_nombre || 'Cliente'}
+                              </span>
+                            </div>
                           </div>
-                          <div className="px-3">
+                        </div>
+                      </div>
+
+                      {/* Vertical divider */}
+                      <div className="hidden lg:block w-px h-24 bg-gradient-to-b from-transparent via-gray-300 dark:via-gray-700 to-transparent" />
+
+                      {/* Center Section: Transaction */}
+                      <div className="flex-1 space-y-3">
+                        {/* Amounts */}
+                        <div className="bg-gray-50 dark:bg-gray-900/50 rounded-xl p-3">
+                          <div className="flex items-center justify-around gap-3">
+                            <div className="text-center flex-1">
+                              <p className="text-xs text-gray-500 dark:text-gray-400 font-medium mb-1">ENTREGA</p>
+                              <p className="text-base font-bold text-gray-900 dark:text-white">
+                                {op.cantidad_entrada.toLocaleString()}
+                              </p>
+                              <p className="text-xs font-semibold text-blue-600 dark:text-blue-400">
+                                {op.divisa_entrada || ''}
+                              </p>
+                            </div>
                             <div className="text-2xl text-gray-400">→</div>
-                          </div>
-                          <div className="text-right flex-1">
-                            <p className="text-xs text-gray-500 dark:text-gray-400 font-medium mb-1">RECIBE</p>
-                            <p className="text-lg font-bold text-gray-900 dark:text-white">
-                              {op.cantidad_salida.toLocaleString()}
-                            </p>
-                            <p className="text-xs font-semibold text-emerald-600 dark:text-emerald-400">
-                              {op.divisa_salida || ''}
-                            </p>
+                            <div className="text-center flex-1">
+                              <p className="text-xs text-gray-500 dark:text-gray-400 font-medium mb-1">RECIBE</p>
+                              <p className="text-base font-bold text-gray-900 dark:text-white">
+                                {op.cantidad_salida.toLocaleString()}
+                              </p>
+                              <p className="text-xs font-semibold text-emerald-600 dark:text-emerald-400">
+                                {op.divisa_salida || ''}
+                              </p>
+                            </div>
                           </div>
                         </div>
-                      </div>
 
-                      {/* Exchange Rates */}
-                      <div className="space-y-2">
-                        {op.tasa_cambio && (
-                          <div className="bg-blue-50 dark:bg-blue-900/20 rounded-lg p-3 border border-blue-200 dark:border-blue-800">
-                            <p className="text-xs text-gray-600 dark:text-gray-400 mb-1">TASA DE CAMBIO</p>
-                            <p className="text-sm font-bold text-blue-700 dark:text-blue-400">
-                              1 {op.divisa_entrada} = ${op.tasa_cambio.toLocaleString(undefined, {
-                                minimumFractionDigits: 2,
-                                maximumFractionDigits: 4
-                              })} {op.divisa_salida}
-                            </p>
-                          </div>
-                        )}
+                        {/* Exchange Rates - Compact */}
+                        <div className="flex items-center gap-2 flex-wrap">
+                          {op.tasa_cambio && (
+                            <div className="flex-1 min-w-[200px] bg-blue-50 dark:bg-blue-900/20 rounded-lg px-3 py-2 border border-blue-200 dark:border-blue-800">
+                              <p className="text-xs text-gray-600 dark:text-gray-400">TASA</p>
+                              <p className="text-xs font-bold text-blue-700 dark:text-blue-400">
+                                1 {op.divisa_entrada} = ${op.tasa_cambio.toLocaleString(undefined, {
+                                  minimumFractionDigits: 2,
+                                  maximumFractionDigits: 2
+                                })}
+                              </p>
+                            </div>
+                          )}
 
-                        <div className="grid grid-cols-2 gap-2">
                           {op.precio_entrada && (
-                            <div className="bg-orange-50 dark:bg-orange-900/20 rounded-lg p-2 border border-orange-200 dark:border-orange-800">
+                            <div className="bg-orange-50 dark:bg-orange-900/20 rounded-lg px-3 py-2 border border-orange-200 dark:border-orange-800">
                               <p className="text-xs text-gray-600 dark:text-gray-400">Compra</p>
-                              <p className="text-sm font-bold text-orange-700 dark:text-orange-400">
+                              <p className="text-xs font-bold text-orange-700 dark:text-orange-400">
                                 ${op.precio_entrada.toLocaleString(undefined, {
                                   minimumFractionDigits: 2,
                                   maximumFractionDigits: 2
@@ -228,9 +230,9 @@ export function PendingOperationsSection({ operations, isLoading, onCompleteOper
                           )}
 
                           {op.precio_salida && (
-                            <div className="bg-green-50 dark:bg-green-900/20 rounded-lg p-2 border border-green-200 dark:border-green-800">
+                            <div className="bg-green-50 dark:bg-green-900/20 rounded-lg px-3 py-2 border border-green-200 dark:border-green-800">
                               <p className="text-xs text-gray-600 dark:text-gray-400">Venta</p>
-                              <p className="text-sm font-bold text-green-700 dark:text-green-400">
+                              <p className="text-xs font-bold text-green-700 dark:text-green-400">
                                 ${op.precio_salida.toLocaleString(undefined, {
                                   minimumFractionDigits: 2,
                                   maximumFractionDigits: 2
@@ -241,45 +243,47 @@ export function PendingOperationsSection({ operations, isLoading, onCompleteOper
                         </div>
                       </div>
 
-                      {/* Ganancia (si existe) */}
-                      {op.ganancia_bruta_usd != null && op.ganancia_bruta_usd > 0 && (
-                        <div className="bg-emerald-50 dark:bg-emerald-900/20 rounded-lg p-3 border-2 border-dashed border-emerald-300 dark:border-emerald-700">
-                          <div className="flex items-center justify-between">
-                            <span className="text-xs text-gray-600 dark:text-gray-400 font-medium">GANANCIA EST.</span>
-                            <span className="text-lg font-bold text-emerald-600 dark:text-emerald-400">
+                      {/* Vertical divider */}
+                      <div className="hidden lg:block w-px h-24 bg-gradient-to-b from-transparent via-gray-300 dark:via-gray-700 to-transparent" />
+
+                      {/* Right Section: Profit & Action */}
+                      <div className="flex-shrink-0 lg:w-48 space-y-3">
+                        {/* Ganancia */}
+                        {op.ganancia_bruta_usd != null && op.ganancia_bruta_usd > 0 && (
+                          <div className="bg-emerald-50 dark:bg-emerald-900/20 rounded-lg p-3 border-2 border-dashed border-emerald-300 dark:border-emerald-700">
+                            <p className="text-xs text-gray-600 dark:text-gray-400 font-medium mb-1">GANANCIA EST.</p>
+                            <p className="text-lg font-bold text-emerald-600 dark:text-emerald-400">
                               ${op.ganancia_bruta_usd.toLocaleString(undefined, {
                                 minimumFractionDigits: 2,
                                 maximumFractionDigits: 2
                               })}
-                            </span>
+                            </p>
                           </div>
-                        </div>
-                      )}
+                        )}
+
+                        {/* Action Button */}
+                        <motion.button
+                          onClick={() => handleComplete(op.id, op.numero_operacion)}
+                          disabled={completingId === op.id}
+                          whileHover={{ scale: completingId === op.id ? 1 : 1.02 }}
+                          whileTap={{ scale: 0.98 }}
+                          className={`w-full py-2.5 rounded-xl font-bold text-xs shadow-lg transition-all duration-300 flex items-center justify-center gap-2 ${
+                            completingId === op.id
+                              ? 'bg-gray-400 cursor-not-allowed'
+                              : 'bg-gradient-to-r from-blue-500 to-indigo-600 hover:from-blue-600 hover:to-indigo-700 text-white'
+                          }`}
+                        >
+                          <CheckCircle className="w-4 h-4" />
+                          <span>{completingId === op.id ? 'COMPLETANDO...' : 'COMPLETAR'}</span>
+                        </motion.button>
+                      </div>
                     </div>
 
-                    {/* Ticket Footer - Action Button */}
-                    <div className="p-4 bg-gray-50 dark:bg-gray-900/50 border-t-2 border-dashed border-gray-300 dark:border-gray-700">
-                      <motion.button
-                        onClick={() => handleComplete(op.id, op.numero_operacion)}
-                        disabled={completingId === op.id}
-                        whileHover={{ scale: completingId === op.id ? 1 : 1.02 }}
-                        whileTap={{ scale: 0.98 }}
-                        className={`w-full py-3 rounded-xl font-bold text-sm shadow-lg transition-all duration-300 flex items-center justify-center gap-2 ${
-                          completingId === op.id
-                            ? 'bg-gray-400 cursor-not-allowed'
-                            : 'bg-gradient-to-r from-blue-500 to-indigo-600 hover:from-blue-600 hover:to-indigo-700 text-white'
-                        }`}
-                      >
-                        <CheckCircle className="w-5 h-5" />
-                        <span>{completingId === op.id ? 'COMPLETANDO...' : 'COMPLETAR OPERACIÓN'}</span>
-                      </motion.button>
-                    </div>
-
-                    {/* Decorative bottom border with perforations effect */}
-                    <div className={`h-2 bg-gradient-to-r ${config.gradient.replace('/10', '/30')}`}>
-                      <div className="flex justify-around h-full">
-                        {[...Array(20)].map((_, i) => (
-                          <div key={i} className="w-0.5 h-full bg-white/50 dark:bg-gray-800/50" />
+                    {/* Decorative right border with perforations effect */}
+                    <div className={`absolute right-0 top-0 bottom-0 w-2 bg-gradient-to-b ${config.gradient.replace('/10', '/30')}`}>
+                      <div className="flex flex-col justify-around h-full">
+                        {[...Array(15)].map((_, i) => (
+                          <div key={i} className="h-0.5 w-full bg-white/50 dark:bg-gray-800/50" />
                         ))}
                       </div>
                     </div>
