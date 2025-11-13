@@ -7,7 +7,8 @@ import { InfoWidget } from '@/components/ui/InfoWidget';
 import { ProfitChart } from './ProfitChart';
 import { CurrencyPieChart } from './CurrencyPieChart';
 import { RecentOperationsTable } from './RecentOperationsTable';
-import type { KpiData, DailySummary, RecentOperation, ProfitByCurrency, Divisa, LoadingState } from '@/types';
+import { PendingOperationsSection } from './PendingOperationsSection';
+import type { KpiData, DailySummary, RecentOperation, ProfitByCurrency, Divisa, LoadingState, PendingOperation } from '@/types';
 
 interface DashboardTabProps {
   kpis: KpiData | null;
@@ -15,6 +16,7 @@ interface DashboardTabProps {
   recentOperations: RecentOperation[];
   profitByCurrency: ProfitByCurrency[];
   divisas: Divisa[];
+  pendingOperations: PendingOperation[];
   loading: LoadingState;
 }
 
@@ -24,6 +26,7 @@ export function DashboardTab({
   recentOperations,
   profitByCurrency,
   divisas,
+  pendingOperations,
   loading
 }: DashboardTabProps) {
   const stockUSD = useMemo(() => {
@@ -63,14 +66,19 @@ export function DashboardTab({
           index={2}
         />
         <KpiCard
-          title="Margen MES"
-          value={kpis?.margen_promedio_mes}
-          isLoading={loading.kpis}
-          isPercentage={true}
-          icon="📈"
+          title="Operaciones Pendientes"
+          value={pendingOperations.length}
+          isLoading={loading.pendingOps}
+          icon="⏳"
           index={3}
         />
       </div>
+
+      {/* Pending Operations Section */}
+      <PendingOperationsSection
+        operations={pendingOperations}
+        isLoading={loading.pendingOps}
+      />
 
       {/* Charts Section */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">

@@ -9,7 +9,8 @@ import type {
   RecentOperation,
   ProfitByCurrency,
   Divisa,
-  LoadingState
+  LoadingState,
+  PendingOperation
 } from '@/types';
 
 export function useData() {
@@ -19,6 +20,7 @@ export function useData() {
     recentOps: false,
     profitByCurrency: false,
     divisas: false,
+    pendingOps: false,
   });
 
   const [kpis, setKpis] = useState<KpiData | null>(null);
@@ -26,6 +28,7 @@ export function useData() {
   const [recentOperations, setRecentOperations] = useState<RecentOperation[]>([]);
   const [profitByCurrency, setProfitByCurrency] = useState<ProfitByCurrency[]>([]);
   const [divisas, setDivisas] = useState<Divisa[]>([]);
+  const [pendingOperations, setPendingOperations] = useState<PendingOperation[]>([]);
 
   const loadKpisData = useCallback(async () => {
     setLoading(prev => ({ ...prev, kpis: true }));
@@ -184,14 +187,34 @@ export function useData() {
     }
   }, []);
 
+  const loadPendingOperationsData = useCallback(async () => {
+    setLoading(prev => ({ ...prev, pendingOps: true }));
+    try {
+      const { data, error } = await supabase
+        .from('operaciones_pendientes')
+        .select('*')
+        .order('horas_transcurridas', { ascending: false });
+
+      if (error) throw error;
+      setPendingOperations(data as PendingOperation[] || []);
+    } catch (error: any) {
+      console.error('Error cargando operaciones pendientes:', error);
+      toast.error('Error cargando operaciones pendientes');
+      setPendingOperations([]);
+    } finally {
+      setLoading(prev => ({ ...prev, pendingOps: false }));
+    }
+  }, []);
+
   const loadAllDashboardData = useCallback(async () => {
     await Promise.all([
       loadKpisData(),
       loadDailySummaryData(),
       loadRecentOperationsData(),
       loadProfitByCurrencyData(),
+      loadPendingOperationsData(),
     ]);
-  }, [loadKpisData, loadDailySummaryData, loadRecentOperationsData, loadProfitByCurrencyData]);
+  }, [loadKpisData, loadDailySummaryData, loadRecentOperationsData, loadProfitByCurrencyData, loadPendingOperationsData]);
 
   const updateDivisa = useCallback(async (divisa: Divisa) => {
     setLoading(prev => ({ ...prev, divisas: true }));
@@ -224,6 +247,7 @@ export function useData() {
     recentOperations,
     profitByCurrency,
     divisas,
+    pendingOperations,
     setDivisas,
     loadAllDashboardData,
     loadDivisasData,
