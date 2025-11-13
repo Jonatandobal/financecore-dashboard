@@ -108,13 +108,13 @@ export function PendingOperationsSection({ operations, isLoading, onCompleteOper
           </div>
         </div>
 
-        {/* Operations List */}
+        {/* Operations List - Ticket Style */}
         {isLoading ? (
           <div className="space-y-4">
             {[...Array(3)].map((_, i) => (
               <div
                 key={i}
-                className="h-32 bg-gradient-to-r from-gray-200 via-gray-300 to-gray-200 dark:from-gray-700 dark:via-gray-600 dark:to-gray-700 rounded-2xl animate-pulse"
+                className="h-48 bg-gradient-to-r from-gray-200 via-gray-300 to-gray-200 dark:from-gray-700 dark:via-gray-600 dark:to-gray-700 rounded-2xl animate-pulse"
               />
             ))}
           </div>
@@ -129,108 +129,143 @@ export function PendingOperationsSection({ operations, isLoading, onCompleteOper
                   initial={{ opacity: 0, x: -20 }}
                   animate={{ opacity: 1, x: 0 }}
                   transition={{ duration: 0.3, delay: index * 0.1 }}
-                  className={`relative overflow-hidden rounded-2xl border-2 ${config.borderColor} bg-gradient-to-br ${config.gradient} backdrop-blur-sm shadow-lg ${config.glowColor} hover:shadow-xl transition-all duration-300 group`}
+                  className="relative group"
                 >
-                  {/* Animated border glow */}
-                  <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-1000" />
-
-                  <div className="relative p-5">
-                    <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
-                      {/* Left section: Main info */}
-                      <div className="flex-1 space-y-3">
-                        <div className="flex items-start justify-between">
-                          <div className="flex items-center gap-3">
-                            <div className="w-12 h-12 rounded-xl bg-white/80 dark:bg-gray-800/80 flex items-center justify-center shadow-md">
-                              <span className="text-xl font-bold bg-gradient-to-br from-blue-600 to-purple-600 dark:from-blue-400 dark:to-purple-400 bg-clip-text text-transparent">
+                  {/* Ticket Container - Horizontal */}
+                  <div className={`relative bg-white dark:bg-gray-800 rounded-2xl shadow-xl border-2 ${config.borderColor} overflow-hidden hover:shadow-2xl transition-all duration-300`}>
+                    {/* Main Content - Horizontal Layout */}
+                    <div className="px-6 py-5 flex flex-col lg:flex-row lg:items-center gap-4">
+                      {/* Left Section: Header Info */}
+                      <div className="flex-shrink-0 lg:w-48">
+                        <div className="flex items-start gap-3">
+                          <div className="flex-1">
+                            <div className="flex items-center gap-2 mb-2">
+                              <span className="text-2xl font-black text-gray-900 dark:text-white font-mono">
                                 #{op.numero_operacion}
                               </span>
+                              <span className={`px-2 py-0.5 rounded-md text-xs font-bold ${config.badgeColor} flex items-center gap-1`}>
+                                {config.icon}
+                              </span>
                             </div>
-                            <div>
-                              <div className="flex items-center gap-2">
-                                <span className={`px-3 py-1 rounded-full text-xs font-bold ${config.badgeColor} shadow-sm flex items-center gap-1`}>
-                                  <span>{config.icon}</span>
-                                  {op.prioridad}
-                                </span>
-                                <span className="px-3 py-1 rounded-full text-xs font-semibold bg-blue-100 text-blue-800 dark:bg-blue-900/40 dark:text-blue-300 shadow-sm">
-                                  {op.estado}
-                                </span>
-                              </div>
-                              <p className="text-xs text-gray-500 dark:text-gray-400 mt-1 flex items-center gap-1">
-                                <Clock className="w-3 h-3" />
-                                {formatTime(op.horas_transcurridas)} transcurrido{op.horas_transcurridas >= 2 ? 's' : ''}
-                              </p>
+                            <div className="flex items-center gap-1.5 text-xs text-gray-500 dark:text-gray-400 mb-1">
+                              <Clock className="w-3 h-3" />
+                              <span>{formatTime(op.horas_transcurridas)}</span>
+                            </div>
+                            <span className="inline-block text-xs px-2 py-0.5 rounded bg-blue-100 text-blue-800 dark:bg-blue-900/40 dark:text-blue-300 mb-2">
+                              {op.estado}
+                            </span>
+                            <div className="flex items-center gap-1.5 text-sm">
+                              <User className="w-3.5 h-3.5 text-gray-500 dark:text-gray-400" />
+                              <span className="font-medium text-gray-700 dark:text-gray-300 truncate text-xs">
+                                {op.usuario_telegram_nombre || 'Cliente'}
+                              </span>
                             </div>
                           </div>
-                        </div>
-
-                        <div className="flex items-center gap-2 text-sm text-gray-700 dark:text-gray-300">
-                          <User className="w-4 h-4 text-gray-500 dark:text-gray-400" />
-                          <span className="font-medium">{op.usuario_telegram_nombre || 'Cliente'}</span>
                         </div>
                       </div>
 
-                      {/* Center section: Exchange info */}
-                      <div className="flex-1 lg:text-center space-y-3">
-                        <div className="inline-flex items-center gap-3 bg-white/60 dark:bg-gray-800/60 backdrop-blur-sm px-4 py-3 rounded-xl shadow-md">
-                          <div className="text-right">
-                            <p className="text-xs text-gray-500 dark:text-gray-400 font-medium">Entrega</p>
-                            <p className="text-base font-bold text-gray-900 dark:text-white">
-                              {op.cantidad_entrada.toLocaleString()} {op.divisa_entrada || ''}
-                            </p>
-                            {op.precio_entrada && (
-                              <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">
-                                @ ${op.precio_entrada.toLocaleString()}
+                      {/* Vertical divider */}
+                      <div className="hidden lg:block w-px h-24 bg-gradient-to-b from-transparent via-gray-300 dark:via-gray-700 to-transparent" />
+
+                      {/* Center Section: Transaction */}
+                      <div className="flex-1 space-y-3">
+                        {/* Amounts */}
+                        <div className="bg-gray-50 dark:bg-gray-900/50 rounded-xl p-3">
+                          <div className="flex items-center justify-around gap-3">
+                            <div className="text-center flex-1">
+                              <p className="text-xs text-gray-500 dark:text-gray-400 font-medium mb-1">ENTREGA</p>
+                              <p className="text-base font-bold text-gray-900 dark:text-white">
+                                {op.cantidad_entrada.toLocaleString()}
                               </p>
-                            )}
-                          </div>
-                          <div className="text-2xl">
-                            <span className="animate-pulse">→</span>
-                          </div>
-                          <div className="text-left">
-                            <p className="text-xs text-gray-500 dark:text-gray-400 font-medium">Recibe</p>
-                            <p className="text-base font-bold text-gray-900 dark:text-white">
-                              {op.cantidad_salida.toLocaleString()} {op.divisa_salida || ''}
-                            </p>
-                            {op.precio_salida && (
-                              <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">
-                                @ ${op.precio_salida.toLocaleString()}
+                              <p className="text-xs font-semibold text-blue-600 dark:text-blue-400">
+                                {op.divisa_entrada || ''}
                               </p>
-                            )}
+                            </div>
+                            <div className="text-2xl text-gray-400">→</div>
+                            <div className="text-center flex-1">
+                              <p className="text-xs text-gray-500 dark:text-gray-400 font-medium mb-1">RECIBE</p>
+                              <p className="text-base font-bold text-gray-900 dark:text-white">
+                                {op.cantidad_salida.toLocaleString()}
+                              </p>
+                              <p className="text-xs font-semibold text-emerald-600 dark:text-emerald-400">
+                                {op.divisa_salida || ''}
+                              </p>
+                            </div>
                           </div>
                         </div>
 
-                        {/* Tasa de cambio destacada */}
-                        <div className="inline-flex items-center gap-2 bg-gradient-to-r from-blue-500/10 to-indigo-500/10 dark:from-blue-600/20 dark:to-indigo-600/20 backdrop-blur-sm px-4 py-2 rounded-lg border border-blue-300/30 dark:border-blue-600/30 shadow-sm">
-                          <span className="text-xs font-medium text-gray-600 dark:text-gray-400">
-                            Tasa:
-                          </span>
-                          <span className="text-sm font-bold bg-gradient-to-r from-blue-600 to-indigo-600 dark:from-blue-400 dark:to-indigo-400 bg-clip-text text-transparent">
-                            {op.tasa_cambio
-                              ? `1 ${op.divisa_entrada} = ${op.tasa_cambio.toLocaleString(undefined, {
+                        {/* Exchange Rates - Compact */}
+                        <div className="flex items-center gap-2 flex-wrap">
+                          {op.tasa_cambio && (
+                            <div className="flex-1 min-w-[200px] bg-blue-50 dark:bg-blue-900/20 rounded-lg px-3 py-2 border border-blue-200 dark:border-blue-800">
+                              <p className="text-xs text-gray-600 dark:text-gray-400">TASA</p>
+                              <p className="text-xs font-bold text-blue-700 dark:text-blue-400">
+                                1 {op.divisa_entrada} = ${op.tasa_cambio.toLocaleString(undefined, {
                                   minimumFractionDigits: 2,
                                   maximumFractionDigits: 2
-                                })} ${op.divisa_salida}`
-                              : op.tipo_cambio
-                            }
-                          </span>
+                                })}
+                              </p>
+                            </div>
+                          )}
+
+                          {op.precio_entrada && (
+                            <div className="bg-orange-50 dark:bg-orange-900/20 rounded-lg px-3 py-2 border border-orange-200 dark:border-orange-800">
+                              <p className="text-xs text-gray-600 dark:text-gray-400">Compra</p>
+                              <p className="text-xs font-bold text-orange-700 dark:text-orange-400">
+                                ${op.precio_entrada.toLocaleString(undefined, {
+                                  minimumFractionDigits: 2,
+                                  maximumFractionDigits: 2
+                                })}
+                              </p>
+                            </div>
+                          )}
+
+                          {op.precio_salida && (
+                            <div className="bg-green-50 dark:bg-green-900/20 rounded-lg px-3 py-2 border border-green-200 dark:border-green-800">
+                              <p className="text-xs text-gray-600 dark:text-gray-400">Venta</p>
+                              <p className="text-xs font-bold text-green-700 dark:text-green-400">
+                                ${op.precio_salida.toLocaleString(undefined, {
+                                  minimumFractionDigits: 2,
+                                  maximumFractionDigits: 2
+                                })}
+                              </p>
+                            </div>
+                          )}
                         </div>
                       </div>
 
-                      {/* Right section: Action Button */}
-                      <div className="flex-shrink-0 flex items-center">
+                      {/* Vertical divider */}
+                      <div className="hidden lg:block w-px h-24 bg-gradient-to-b from-transparent via-gray-300 dark:via-gray-700 to-transparent" />
+
+                      {/* Right Section: Profit & Action */}
+                      <div className="flex-shrink-0 lg:w-48 space-y-3">
+                        {/* Ganancia */}
+                        {op.ganancia_bruta_usd != null && op.ganancia_bruta_usd > 0 && (
+                          <div className="bg-emerald-50 dark:bg-emerald-900/20 rounded-lg p-3 border-2 border-dashed border-emerald-300 dark:border-emerald-700">
+                            <p className="text-xs text-gray-600 dark:text-gray-400 font-medium mb-1">GANANCIA EST.</p>
+                            <p className="text-lg font-bold text-emerald-600 dark:text-emerald-400">
+                              ${op.ganancia_bruta_usd.toLocaleString(undefined, {
+                                minimumFractionDigits: 2,
+                                maximumFractionDigits: 2
+                              })}
+                            </p>
+                          </div>
+                        )}
+
+                        {/* Action Button */}
                         <motion.button
                           onClick={() => handleComplete(op.id, op.numero_operacion)}
                           disabled={completingId === op.id}
-                          whileHover={{ scale: completingId === op.id ? 1 : 1.05 }}
-                          whileTap={{ scale: 0.95 }}
-                          className={`px-6 py-4 rounded-xl font-semibold text-sm shadow-lg transition-all duration-300 flex items-center justify-center gap-2 ${
+                          whileHover={{ scale: completingId === op.id ? 1 : 1.02 }}
+                          whileTap={{ scale: 0.98 }}
+                          className={`w-full py-2.5 rounded-xl font-bold text-xs shadow-lg transition-all duration-300 flex items-center justify-center gap-2 ${
                             completingId === op.id
                               ? 'bg-gray-400 cursor-not-allowed'
                               : 'bg-gradient-to-r from-blue-500 to-indigo-600 hover:from-blue-600 hover:to-indigo-700 text-white'
                           }`}
                         >
-                          <CheckCircle className="w-5 h-5" />
-                          <span>{completingId === op.id ? 'Completando...' : 'Completar'}</span>
+                          <CheckCircle className="w-4 h-4" />
+                          <span>{completingId === op.id ? 'COMPLETANDO...' : 'COMPLETAR'}</span>
                         </motion.button>
                       </div>
                     </div>
