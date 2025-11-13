@@ -43,12 +43,28 @@ export interface Divisa {
   updated_at?: string;
 }
 
+export interface PendingOperation {
+  id: string;
+  numero_operacion: number;
+  usuario_telegram_nombre: string | null;
+  usuario_telegram_id: string | null;
+  tipo_cambio: string;
+  cantidad_entrada: number;
+  cantidad_salida: number;
+  ganancia_bruta_usd: number | null;
+  estado: string;
+  created_at: string;
+  horas_transcurridas: number;
+  prioridad: 'ALTA' | 'MEDIA' | 'NORMAL';
+}
+
 export interface LoadingState {
   kpis: boolean;
   dailySummary: boolean;
   recentOps: boolean;
   profitByCurrency: boolean;
   divisas: boolean;
+  pendingOps: boolean;
 }
 
 export type MessageType = 'success' | 'warning' | 'error';

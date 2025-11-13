@@ -20,6 +20,7 @@ export default function HemisferiaDashboard() {
     recentOperations,
     profitByCurrency,
     divisas,
+    pendingOperations,
     setDivisas,
     loadAllDashboardData,
     loadDivisasData,
@@ -43,50 +44,55 @@ export default function HemisferiaDashboard() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-50 via-blue-50/30 to-purple-50/30 dark:from-gray-900 dark:via-blue-950/20 dark:to-purple-950/20 transition-colors duration-500">
-      <Header />
+      {/* Sidebar Navigation */}
+      <TabNavigation activeTab={activeTab} onTabChange={setActiveTab} />
 
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-8 pb-12">
-        <TabNavigation activeTab={activeTab} onTabChange={setActiveTab} />
+      {/* Main Content with left padding for sidebar */}
+      <div className="pl-24 lg:pl-32">
+        <Header />
 
-        <motion.div
-          key={activeTab}
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          exit={{ opacity: 0, y: -20 }}
-          transition={{ duration: 0.3 }}
-        >
-          {activeTab === 'dashboard' && (
-            <DashboardTab
-              kpis={kpis}
-              dailySummary={dailySummary}
-              recentOperations={recentOperations}
-              profitByCurrency={profitByCurrency}
-              divisas={divisas}
-              loading={loading}
-            />
-          )}
+        <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-8 pb-12">
+          <motion.div
+            key={activeTab}
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -20 }}
+            transition={{ duration: 0.3 }}
+          >
+            {activeTab === 'dashboard' && (
+              <DashboardTab
+                kpis={kpis}
+                dailySummary={dailySummary}
+                recentOperations={recentOperations}
+                profitByCurrency={profitByCurrency}
+                divisas={divisas}
+                pendingOperations={pendingOperations}
+                loading={loading}
+              />
+            )}
 
-          {activeTab === 'divisas' && (
-            <DivisasTab
-              divisas={divisas}
-              loading={loading}
-              onRefresh={loadDivisasData}
-              onUpdate={updateDivisa}
-              onChange={handleDivisaChange}
-            />
-          )}
+            {activeTab === 'divisas' && (
+              <DivisasTab
+                divisas={divisas}
+                loading={loading}
+                onRefresh={loadDivisasData}
+                onUpdate={updateDivisa}
+                onChange={handleDivisaChange}
+              />
+            )}
 
-          {activeTab === 'bot' && <BotTab />}
-        </motion.div>
-      </main>
+            {activeTab === 'bot' && <BotTab />}
+          </motion.div>
+        </main>
 
-      <footer className="border-t border-gray-200 dark:border-gray-800 mt-16 backdrop-blur-xl bg-white/50 dark:bg-gray-900/50">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
-          <p className="text-center text-sm text-gray-600 dark:text-gray-400">
-            &copy; {new Date().getFullYear()} Hemisferia. Todos los derechos reservados.
-          </p>
-        </div>
-      </footer>
+        <footer className="border-t border-gray-200 dark:border-gray-800 mt-16 backdrop-blur-xl bg-white/50 dark:bg-gray-900/50">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+            <p className="text-center text-sm text-gray-600 dark:text-gray-400">
+              &copy; {new Date().getFullYear()} Hemisferia. Todos los derechos reservados.
+            </p>
+          </div>
+        </footer>
+      </div>
     </div>
   );
 }
