@@ -133,17 +133,8 @@ export function PendingOperationsSection({ operations, isLoading, onCompleteOper
                 >
                   {/* Ticket Container - Horizontal */}
                   <div className={`relative bg-white dark:bg-gray-800 rounded-2xl shadow-xl border-2 ${config.borderColor} overflow-hidden hover:shadow-2xl transition-all duration-300`}>
-                    {/* Decorative left border with perforations effect */}
-                    <div className={`absolute left-0 top-0 bottom-0 w-2 bg-gradient-to-b ${config.gradient.replace('/10', '/30')}`}>
-                      <div className="flex flex-col justify-around h-full">
-                        {[...Array(15)].map((_, i) => (
-                          <div key={i} className="h-0.5 w-full bg-white/50 dark:bg-gray-800/50" />
-                        ))}
-                      </div>
-                    </div>
-
                     {/* Main Content - Horizontal Layout */}
-                    <div className="pl-4 pr-4 py-5 flex flex-col lg:flex-row lg:items-center gap-4">
+                    <div className="px-6 py-5 flex flex-col lg:flex-row lg:items-center gap-4">
                       {/* Left Section: Header Info */}
                       <div className="flex-shrink-0 lg:w-48">
                         <div className="flex items-start gap-3">
@@ -276,15 +267,6 @@ export function PendingOperationsSection({ operations, isLoading, onCompleteOper
                           <CheckCircle className="w-4 h-4" />
                           <span>{completingId === op.id ? 'COMPLETANDO...' : 'COMPLETAR'}</span>
                         </motion.button>
-                      </div>
-                    </div>
-
-                    {/* Decorative right border with perforations effect */}
-                    <div className={`absolute right-0 top-0 bottom-0 w-2 bg-gradient-to-b ${config.gradient.replace('/10', '/30')}`}>
-                      <div className="flex flex-col justify-around h-full">
-                        {[...Array(15)].map((_, i) => (
-                          <div key={i} className="h-0.5 w-full bg-white/50 dark:bg-gray-800/50" />
-                        ))}
                       </div>
                     </div>
                   </div>
