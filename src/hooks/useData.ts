@@ -1,3 +1,4 @@
+// src/hooks/useData.ts - VERSIÓN OPTIMIZADA
 'use client'
 
 import { useState, useCallback } from 'react';
@@ -33,46 +34,35 @@ export function useData() {
   const loadKpisData = useCallback(async () => {
     setLoading(prev => ({ ...prev, kpis: true }));
     try {
+      // Usar la vista ganancias_mes_actual
+      const { data: gananciaMesData, error: gananciaMesError } = await supabase
+        .from('ganancias_mes_actual')
+        .select('*')
+        .single();
+
+      if (gananciaMesError) throw gananciaMesError;
+
+      // Calcular operaciones de hoy manualmente
       const today = new Date();
       const todayStart = new Date(today.getFullYear(), today.getMonth(), today.getDate()).toISOString();
-      const monthStart = new Date(today.getFullYear(), today.getMonth(), 1).toISOString();
 
-      const { data, error } = await supabase
+      const { data: todayOps, error: todayError } = await supabase
         .from('operaciones_cambio')
-        .select('ganancia_bruta_usd, margen_porcentaje, created_at', { count: 'exact' })
+        .select('ganancia_bruta_usd')
         .eq('estado', 'completada')
-        .gte('created_at', monthStart);
+        .gte('created_at', todayStart);
 
-      if (error) throw error;
+      if (todayError) throw todayError;
 
-      let gananciaHoy = 0;
-      let operacionesHoy = 0;
-      let gananciaMes = 0;
-      let operacionesMes = 0;
-      let margenSumaMes = 0;
-
-      data?.forEach(op => {
-        const opDate = new Date(op.created_at);
-        const opDateStart = new Date(opDate.getFullYear(), opDate.getMonth(), opDate.getDate()).toISOString();
-
-        gananciaMes += op.ganancia_bruta_usd || 0;
-        operacionesMes++;
-        margenSumaMes += op.margen_porcentaje || 0;
-
-        if (opDateStart === todayStart) {
-          gananciaHoy += op.ganancia_bruta_usd || 0;
-          operacionesHoy++;
-        }
-      });
-
-      const margenPromedioMes = operacionesMes > 0 ? margenSumaMes / operacionesMes : 0;
+      const gananciaHoy = todayOps?.reduce((sum, op) => sum + (op.ganancia_bruta_usd || 0), 0) || 0;
+      const operacionesHoy = todayOps?.length || 0;
 
       setKpis({
         ganancia_hoy: gananciaHoy,
         operaciones_hoy: operacionesHoy,
-        ganancia_mes: gananciaMes,
-        operaciones_mes: operacionesMes,
-        margen_promedio_mes: margenPromedioMes,
+        ganancia_mes: gananciaMesData.ganancia_total_usd || 0,
+        operaciones_mes: gananciaMesData.total_operaciones || 0,
+        margen_promedio_mes: gananciaMesData.margen_promedio || 0,
       });
     } catch (error: any) {
       console.error('Error calculando KPIs:', error);
@@ -86,6 +76,7 @@ export function useData() {
   const loadDailySummaryData = useCallback(async () => {
     setLoading(prev => ({ ...prev, dailySummary: true }));
     try {
+      // Usar la vista resumen_diario_ultimos_30_dias
       const { data, error } = await supabase
         .from('resumen_diario_ultimos_30_dias')
         .select('dia, ganancia_usd, operaciones')
@@ -94,7 +85,9 @@ export function useData() {
       if (error) throw error;
 
       const formattedData = data?.map(item => ({
-        ...item,
+        dia: item.dia,
+        ganancia_usd: parseFloat(item.ganancia_usd || '0'),
+        operaciones: parseInt(item.operaciones || '0'),
         diaLabel: item.dia ? new Date(item.dia + 'T00:00:00Z').toLocaleDateString('es-AR', {
           day: '2-digit',
           month: '2-digit',
@@ -115,29 +108,47 @@ export function useData() {
   const loadRecentOperationsData = useCallback(async () => {
     setLoading(prev => ({ ...prev, recentOps: true }));
     try {
+      // Usar la vista operaciones_completadas
       const { data, error } = await supabase
-        .from('operaciones_cambio')
+        .from('operaciones_completadas')
         .select(`
-          numero_operacion, created_at, usuario_telegram_nombre,
-          cantidad_entrada, divisa_entrada, cantidad_salida, divisa_salida,
-          ganancia_bruta_usd, estado
+          numero_operacion,
+          fecha_creacion,
+          usuario_telegram_nombre,
+          cantidad_entrada,
+          cantidad_salida,
+          ganancia_bruta_usd,
+          tipo_cambio
         `)
-        .order('created_at', { ascending: false })
+        .order('fecha_completada', { ascending: false })
         .limit(7);
 
       if (error) throw error;
 
-      const formattedData = data?.map(op => ({
-        ...op,
-        entregado: `${op.cantidad_entrada ?? ''} ${op.divisa_entrada ?? ''}`,
-        recibido: `${op.cantidad_salida ?? ''} ${op.divisa_salida ?? ''}`,
-        created_at_formatted: new Date(op.created_at).toLocaleString('es-AR', {
-          day: '2-digit',
-          month: '2-digit',
-          hour: '2-digit',
-          minute: '2-digit'
-        })
-      })) || [];
+      const formattedData = data?.map(op => {
+        // Extraer divisas del tipo_cambio (formato: "ARS → USD")
+        const [divisa_entrada, divisa_salida] = op.tipo_cambio?.split(' → ') || ['', ''];
+        
+        return {
+          numero_operacion: op.numero_operacion,
+          created_at: op.fecha_creacion,
+          usuario_telegram_nombre: op.usuario_telegram_nombre,
+          cantidad_entrada: op.cantidad_entrada,
+          divisa_entrada: divisa_entrada,
+          cantidad_salida: op.cantidad_salida,
+          divisa_salida: divisa_salida,
+          ganancia_bruta_usd: parseFloat(op.ganancia_bruta_usd || '0'),
+          estado: 'completada',
+          entregado: `${op.cantidad_entrada || ''} ${divisa_entrada}`,
+          recibido: `${op.cantidad_salida || ''} ${divisa_salida}`,
+          created_at_formatted: new Date(op.fecha_creacion).toLocaleString('es-AR', {
+            day: '2-digit',
+            month: '2-digit',
+            hour: '2-digit',
+            minute: '2-digit'
+          })
+        };
+      }) || [];
 
       setRecentOperations(formattedData as RecentOperation[]);
     } catch (error: any) {
@@ -152,13 +163,20 @@ export function useData() {
   const loadProfitByCurrencyData = useCallback(async () => {
     setLoading(prev => ({ ...prev, profitByCurrency: true }));
     try {
+      // Usar la vista operaciones_por_divisa
       const { data, error } = await supabase
         .from('operaciones_por_divisa')
         .select('par_divisas, ganancia_total_usd')
         .order('ganancia_total_usd', { ascending: false });
 
       if (error) throw error;
-      setProfitByCurrency(data as ProfitByCurrency[] || []);
+
+      const formattedData = data?.map(item => ({
+        par_divisas: item.par_divisas,
+        ganancia_total_usd: parseFloat(item.ganancia_total_usd || '0')
+      })) || [];
+
+      setProfitByCurrency(formattedData as ProfitByCurrency[]);
     } catch (error: any) {
       console.error('Error cargando ganancias por divisa:', error);
       toast.error('Error cargando ganancias por divisa');
@@ -171,13 +189,24 @@ export function useData() {
   const loadDivisasData = useCallback(async () => {
     setLoading(prev => ({ ...prev, divisas: true }));
     try {
+      // Usar la vista balance_actual_divisas
       const { data, error } = await supabase
-        .from('divisas_stock')
-        .select('*')
-        .order('id', { ascending: true });
+        .from('balance_actual_divisas')
+        .select('divisa, precio_compra, precio_venta, stock_actual')
+        .order('divisa', { ascending: true });
 
       if (error) throw error;
-      setDivisas(data || []);
+
+      // Mapear a la estructura de Divisa
+      const formattedData = data?.map((item, index) => ({
+        id: index + 1, // Generar ID temporal
+        divisa: item.divisa,
+        precio_compra: parseFloat(item.precio_compra || '0'),
+        precio_venta: parseFloat(item.precio_venta || '0'),
+        stock_disponible: parseFloat(item.stock_actual || '0')
+      })) || [];
+
+      setDivisas(formattedData);
     } catch (error: any) {
       console.error('Error cargando divisas:', error);
       toast.error('Error cargando lista de divisas');
@@ -190,78 +219,35 @@ export function useData() {
   const loadPendingOperationsData = useCallback(async () => {
     setLoading(prev => ({ ...prev, pendingOps: true }));
     try {
-      // Primero intentar con la vista
-      let { data, error } = await supabase
+      // Usar la vista operaciones_pendientes
+      const { data, error } = await supabase
         .from('operaciones_pendientes')
-        .select(`
-          id,
-          numero_operacion,
-          usuario_telegram_nombre,
-          usuario_telegram_id,
-          tipo_cambio,
-          cantidad_entrada,
-          cantidad_salida,
-          ganancia_bruta_usd,
-          estado,
-          created_at,
-          horas_transcurridas,
-          prioridad,
-          tasa_cambio,
-          precio_entrada,
-          precio_salida,
-          divisa_entrada,
-          divisa_salida
-        `)
+        .select('*')
         .order('horas_transcurridas', { ascending: false });
 
-      // Si falla, intentar con la tabla directamente
-      if (error) {
-        console.warn('Vista operaciones_pendientes no tiene todos los campos, usando tabla directa');
-        const result = await supabase
-          .from('operaciones_cambio')
-          .select(`
-            id,
-            numero_operacion,
-            usuario_telegram_nombre,
-            usuario_telegram_id,
-            tipo_cambio,
-            cantidad_entrada,
-            cantidad_salida,
-            ganancia_bruta_usd,
-            estado,
-            created_at,
-            tasa_cambio,
-            precio_entrada,
-            precio_salida,
-            divisa_entrada,
-            divisa_salida
-          `)
-          .neq('estado', 'completada')
-          .order('created_at', { ascending: false });
+      if (error) throw error;
 
-        if (result.error) throw result.error;
+      const formattedData = data?.map(op => ({
+        id: op.id,
+        numero_operacion: op.numero_operacion,
+        usuario_telegram_nombre: op.usuario_telegram_nombre,
+        usuario_telegram_id: op.usuario_telegram_id,
+        tipo_cambio: op.tipo_cambio,
+        cantidad_entrada: parseFloat(op.cantidad_entrada || '0'),
+        cantidad_salida: parseFloat(op.cantidad_salida || '0'),
+        ganancia_bruta_usd: parseFloat(op.ganancia_bruta_usd || '0'),
+        estado: op.estado,
+        created_at: op.created_at,
+        horas_transcurridas: parseFloat(op.horas_transcurridas || '0'),
+        prioridad: op.prioridad as 'ALTA' | 'MEDIA' | 'NORMAL',
+        tasa_cambio: parseFloat(op.tasa_cambio || '0'),
+        precio_entrada: parseFloat(op.precio_entrada || '0'),
+        precio_salida: parseFloat(op.precio_salida || '0'),
+        divisa_entrada: op.divisa_entrada,
+        divisa_salida: op.divisa_salida
+      })) || [];
 
-        // Calcular horas transcurridas y prioridad manualmente
-        const enrichedData = result.data?.map(op => {
-          const createdAt = new Date(op.created_at);
-          const now = new Date();
-          const horasTranscurridas = (now.getTime() - createdAt.getTime()) / (1000 * 60 * 60);
-
-          let prioridad: 'ALTA' | 'MEDIA' | 'NORMAL' = 'NORMAL';
-          if (horasTranscurridas > 6) prioridad = 'ALTA';
-          else if (horasTranscurridas > 2) prioridad = 'MEDIA';
-
-          return {
-            ...op,
-            horas_transcurridas: horasTranscurridas,
-            prioridad
-          };
-        }) || [];
-
-        setPendingOperations(enrichedData as PendingOperation[]);
-      } else {
-        setPendingOperations(data as PendingOperation[] || []);
-      }
+      setPendingOperations(formattedData as PendingOperation[]);
     } catch (error: any) {
       console.error('Error cargando operaciones pendientes:', error);
       toast.error('Error cargando operaciones pendientes');
@@ -284,6 +270,7 @@ export function useData() {
   const updateDivisa = useCallback(async (divisa: Divisa) => {
     setLoading(prev => ({ ...prev, divisas: true }));
     try {
+      // Actualizar en la tabla base divisas_stock
       const { error } = await supabase
         .from('divisas_stock')
         .update({
@@ -292,7 +279,7 @@ export function useData() {
           stock_disponible: divisa.stock_disponible,
           updated_at: new Date().toISOString()
         })
-        .eq('id', divisa.id);
+        .eq('divisa', divisa.divisa); // Usar divisa como identificador único
 
       if (error) throw error;
 
