@@ -9,9 +9,10 @@ interface PendingOperationsSectionProps {
   operations: PendingOperation[];
   isLoading: boolean;
   onCompleteOperation: (operationId: string) => Promise<void>;
+  showProfits?: boolean;
 }
 
-export function PendingOperationsSection({ operations, isLoading, onCompleteOperation }: PendingOperationsSectionProps) {
+export function PendingOperationsSection({ operations, isLoading, onCompleteOperation, showProfits = true }: PendingOperationsSectionProps) {
   const [completingId, setCompletingId] = useState<string | null>(null);
 
   // Calcular total de ganancias estimadas
@@ -94,18 +95,20 @@ export function PendingOperationsSection({ operations, isLoading, onCompleteOper
           </div>
 
           {/* Total Ganancias Estimadas */}
-          <div className="bg-gradient-to-br from-emerald-500/20 to-green-500/20 dark:from-emerald-600/20 dark:to-green-600/20 backdrop-blur-sm px-6 py-4 rounded-2xl shadow-lg border-2 border-emerald-300/50 dark:border-emerald-700/50">
-            <p className="text-xs text-gray-600 dark:text-gray-400 font-medium mb-1 flex items-center gap-1">
-              <TrendingUp className="w-4 h-4" />
-              Ganancia Total Estimada
-            </p>
-            <p className="text-2xl font-bold text-emerald-600 dark:text-emerald-400">
-              ${totalGananciasEstimadas.toLocaleString(undefined, {
-                minimumFractionDigits: 2,
-                maximumFractionDigits: 2,
-              })}
-            </p>
-          </div>
+          {showProfits && (
+            <div className="bg-gradient-to-br from-emerald-500/20 to-green-500/20 dark:from-emerald-600/20 dark:to-green-600/20 backdrop-blur-sm px-6 py-4 rounded-2xl shadow-lg border-2 border-emerald-300/50 dark:border-emerald-700/50">
+              <p className="text-xs text-gray-600 dark:text-gray-400 font-medium mb-1 flex items-center gap-1">
+                <TrendingUp className="w-4 h-4" />
+                Ganancia Total Estimada
+              </p>
+              <p className="text-2xl font-bold text-emerald-600 dark:text-emerald-400">
+                ${totalGananciasEstimadas.toLocaleString(undefined, {
+                  minimumFractionDigits: 2,
+                  maximumFractionDigits: 2,
+                })}
+              </p>
+            </div>
+          )}
         </div>
 
         {/* Operations List - Ticket Style */}
@@ -240,7 +243,7 @@ export function PendingOperationsSection({ operations, isLoading, onCompleteOper
                       {/* Right Section: Profit & Action */}
                       <div className="flex-shrink-0 lg:w-48 space-y-3">
                         {/* Ganancia */}
-                        {op.ganancia_bruta_usd != null && op.ganancia_bruta_usd > 0 && (
+                        {showProfits && op.ganancia_bruta_usd != null && op.ganancia_bruta_usd > 0 && (
                           <div className="bg-emerald-50 dark:bg-emerald-900/20 rounded-lg p-3 border-2 border-dashed border-emerald-300 dark:border-emerald-700">
                             <p className="text-xs text-gray-600 dark:text-gray-400 font-medium mb-1">GANANCIA EST.</p>
                             <p className="text-lg font-bold text-emerald-600 dark:text-emerald-400">

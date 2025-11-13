@@ -2,7 +2,7 @@
 
 import React from 'react';
 import { motion } from 'framer-motion';
-import { BarChart3, Coins, Bot } from 'lucide-react';
+import { BarChart3, Coins, Bot, Clock } from 'lucide-react';
 
 interface TabNavigationProps {
   activeTab: string;
@@ -11,6 +11,7 @@ interface TabNavigationProps {
 
 const tabs = [
   { id: 'dashboard', name: 'Dashboard', icon: BarChart3, emoji: '📊' },
+  { id: 'operaciones', name: 'En Curso', icon: Clock, emoji: '⏳' },
   { id: 'divisas', name: 'Divisas', icon: Coins, emoji: '💰' },
   { id: 'bot', name: 'Bot Status', icon: Bot, emoji: '🤖' },
 ];
