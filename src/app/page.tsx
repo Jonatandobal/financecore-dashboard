@@ -5,6 +5,7 @@ import { motion } from 'framer-motion';
 import { Header } from '@/components/layout/Header';
 import { TabNavigation } from '@/components/layout/TabNavigation';
 import { DashboardTab } from '@/components/dashboard/DashboardTab';
+import { OperacionesEnCursoTab } from '@/components/operaciones/OperacionesEnCursoTab';
 import { DivisasTab } from '@/components/divisas/DivisasTab';
 import { BotTab } from '@/components/bot/BotTab';
 import { useData } from '@/hooks/useData';
@@ -67,6 +68,14 @@ export default function HemisferiaDashboard() {
                 recentOperations={recentOperations}
                 profitByCurrency={profitByCurrency}
                 divisas={divisas}
+                pendingOperations={pendingOperations}
+                loading={loading}
+                onCompleteOperation={completeOperation}
+              />
+            )}
+
+            {activeTab === 'operaciones' && (
+              <OperacionesEnCursoTab
                 pendingOperations={pendingOperations}
                 loading={loading}
                 onCompleteOperation={completeOperation}
