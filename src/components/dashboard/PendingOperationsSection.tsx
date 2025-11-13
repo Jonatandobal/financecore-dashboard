@@ -1,16 +1,29 @@
 'use client'
 
-import React from 'react';
+import React, { useState } from 'react';
 import { motion } from 'framer-motion';
-import { Clock, User, TrendingUp, AlertCircle } from 'lucide-react';
+import { Clock, User, TrendingUp, AlertCircle, CheckCircle } from 'lucide-react';
 import type { PendingOperation } from '@/types';
 
 interface PendingOperationsSectionProps {
   operations: PendingOperation[];
   isLoading: boolean;
+  onCompleteOperation: (operationId: string) => Promise<void>;
 }
 
-export function PendingOperationsSection({ operations, isLoading }: PendingOperationsSectionProps) {
+export function PendingOperationsSection({ operations, isLoading, onCompleteOperation }: PendingOperationsSectionProps) {
+  const [completingId, setCompletingId] = useState<string | null>(null);
+
+  const handleComplete = async (operationId: string, operationNumber: number) => {
+    if (window.confirm(`¿Confirmar que desea completar la operación #${operationNumber}?`)) {
+      setCompletingId(operationId);
+      try {
+        await onCompleteOperation(operationId);
+      } finally {
+        setCompletingId(null);
+      }
+    }
+  };
   const getPriorityConfig = (prioridad: string, horas: number) => {
     if (prioridad === 'ALTA' || horas > 6) {
       return {
@@ -168,8 +181,8 @@ export function PendingOperationsSection({ operations, isLoading }: PendingOpera
                         </p>
                       </div>
 
-                      {/* Right section: Profit */}
-                      <div className="flex-shrink-0 text-right">
+                      {/* Right section: Profit & Action */}
+                      <div className="flex-shrink-0 text-right space-y-3">
                         <div className="bg-gradient-to-br from-emerald-500/20 to-green-500/20 dark:from-emerald-600/20 dark:to-green-600/20 backdrop-blur-sm px-4 py-3 rounded-xl shadow-md border border-emerald-300/50 dark:border-emerald-700/50">
                           <p className="text-xs text-gray-600 dark:text-gray-400 font-medium mb-1 flex items-center justify-end gap-1">
                             <TrendingUp className="w-3 h-3" />
@@ -184,6 +197,22 @@ export function PendingOperationsSection({ operations, isLoading }: PendingOpera
                               : '-'}
                           </p>
                         </div>
+
+                        {/* Complete Button */}
+                        <motion.button
+                          onClick={() => handleComplete(op.id, op.numero_operacion)}
+                          disabled={completingId === op.id}
+                          whileHover={{ scale: completingId === op.id ? 1 : 1.05 }}
+                          whileTap={{ scale: 0.95 }}
+                          className={`w-full px-4 py-3 rounded-xl font-semibold text-sm shadow-lg transition-all duration-300 flex items-center justify-center gap-2 ${
+                            completingId === op.id
+                              ? 'bg-gray-400 cursor-not-allowed'
+                              : 'bg-gradient-to-r from-blue-500 to-indigo-600 hover:from-blue-600 hover:to-indigo-700 text-white'
+                          }`}
+                        >
+                          <CheckCircle className="w-4 h-4" />
+                          {completingId === op.id ? 'Completando...' : 'Completar'}
+                        </motion.button>
                       </div>
                     </div>
                   </div>
