@@ -240,6 +240,35 @@ export function useData() {
     setLoading(prev => ({ ...prev, divisas: false }));
   }, [loadDivisasData]);
 
+  const completeOperation = useCallback(async (operationId: string) => {
+    setLoading(prev => ({ ...prev, pendingOps: true }));
+    try {
+      const { error } = await supabase
+        .from('operaciones_cambio')
+        .update({
+          estado: 'completada',
+          updated_at: new Date().toISOString()
+        })
+        .eq('id', operationId);
+
+      if (error) throw error;
+
+      toast.success('Operación completada exitosamente');
+
+      // Reload data to refresh the dashboard
+      await Promise.all([
+        loadPendingOperationsData(),
+        loadRecentOperationsData(),
+        loadKpisData(),
+      ]);
+    } catch (error: any) {
+      console.error('Error completando operación:', error);
+      toast.error('Error al completar operación: ' + error.message);
+    } finally {
+      setLoading(prev => ({ ...prev, pendingOps: false }));
+    }
+  }, [loadPendingOperationsData, loadRecentOperationsData, loadKpisData]);
+
   return {
     loading,
     kpis,
@@ -252,5 +281,6 @@ export function useData() {
     loadAllDashboardData,
     loadDivisasData,
     updateDivisa,
+    completeOperation,
   };
 }

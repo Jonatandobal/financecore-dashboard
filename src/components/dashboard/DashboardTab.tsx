@@ -18,6 +18,7 @@ interface DashboardTabProps {
   divisas: Divisa[];
   pendingOperations: PendingOperation[];
   loading: LoadingState;
+  onCompleteOperation: (operationId: string) => Promise<void>;
 }
 
 export function DashboardTab({
@@ -27,7 +28,8 @@ export function DashboardTab({
   profitByCurrency,
   divisas,
   pendingOperations,
-  loading
+  loading,
+  onCompleteOperation
 }: DashboardTabProps) {
   const stockUSD = useMemo(() => {
     return divisas.find(d => d.divisa === 'USD')?.stock_disponible || 0;
@@ -78,6 +80,7 @@ export function DashboardTab({
       <PendingOperationsSection
         operations={pendingOperations}
         isLoading={loading.pendingOps}
+        onCompleteOperation={onCompleteOperation}
       />
 
       {/* Charts Section */}

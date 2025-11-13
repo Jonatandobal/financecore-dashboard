@@ -56,6 +56,11 @@ export interface PendingOperation {
   created_at: string;
   horas_transcurridas: number;
   prioridad: 'ALTA' | 'MEDIA' | 'NORMAL';
+  tasa_cambio: number | null;
+  precio_entrada: number | null;
+  precio_salida: number | null;
+  divisa_entrada: string | null;
+  divisa_salida: string | null;
 }
 
 export interface LoadingState {

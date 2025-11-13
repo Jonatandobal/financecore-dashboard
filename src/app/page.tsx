@@ -25,6 +25,7 @@ export default function HemisferiaDashboard() {
     loadAllDashboardData,
     loadDivisasData,
     updateDivisa,
+    completeOperation,
   } = useData();
 
   useEffect(() => {
@@ -68,6 +69,7 @@ export default function HemisferiaDashboard() {
                 divisas={divisas}
                 pendingOperations={pendingOperations}
                 loading={loading}
+                onCompleteOperation={completeOperation}
               />
             )}
 

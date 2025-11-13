@@ -1,16 +1,34 @@
 'use client'
 
-import React from 'react';
+import React, { useState } from 'react';
 import { motion } from 'framer-motion';
-import { Clock, User, TrendingUp, AlertCircle } from 'lucide-react';
+import { Clock, User, TrendingUp, AlertCircle, CheckCircle } from 'lucide-react';
 import type { PendingOperation } from '@/types';
 
 interface PendingOperationsSectionProps {
   operations: PendingOperation[];
   isLoading: boolean;
+  onCompleteOperation: (operationId: string) => Promise<void>;
 }
 
-export function PendingOperationsSection({ operations, isLoading }: PendingOperationsSectionProps) {
+export function PendingOperationsSection({ operations, isLoading, onCompleteOperation }: PendingOperationsSectionProps) {
+  const [completingId, setCompletingId] = useState<string | null>(null);
+
+  // Calcular total de ganancias estimadas
+  const totalGananciasEstimadas = operations.reduce((total, op) => {
+    return total + (op.ganancia_bruta_usd || 0);
+  }, 0);
+
+  const handleComplete = async (operationId: string, operationNumber: number) => {
+    if (window.confirm(`¿Confirmar que desea completar la operación #${operationNumber}?`)) {
+      setCompletingId(operationId);
+      try {
+        await onCompleteOperation(operationId);
+      } finally {
+        setCompletingId(null);
+      }
+    }
+  };
   const getPriorityConfig = (prioridad: string, horas: number) => {
     if (prioridad === 'ALTA' || horas > 6) {
       return {
@@ -64,8 +82,8 @@ export function PendingOperationsSection({ operations, isLoading }: PendingOpera
 
       <div className="relative bg-white/90 dark:bg-gray-800/90 backdrop-blur-sm rounded-3xl shadow-xl border border-gray-100 dark:border-gray-700 p-6 sm:p-8 hover:shadow-2xl transition-all duration-500">
         {/* Header */}
-        <div className="flex justify-between items-center mb-6">
-          <div>
+        <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-4 mb-6">
+          <div className="flex-1">
             <h3 className="text-2xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 dark:from-blue-400 dark:to-purple-400 bg-clip-text text-transparent flex items-center gap-3">
               <span className="text-3xl">⏳</span>
               Operaciones en Curso
@@ -74,13 +92,20 @@ export function PendingOperationsSection({ operations, isLoading }: PendingOpera
               {operations.length} operación{operations.length !== 1 ? 'es' : ''} pendiente{operations.length !== 1 ? 's' : ''} de completar
             </p>
           </div>
-          <motion.div
-            className="w-14 h-14 rounded-2xl bg-gradient-to-br from-blue-400 to-purple-600 flex items-center justify-center shadow-lg"
-            whileHover={{ scale: 1.1, rotate: 180 }}
-            transition={{ type: "spring", stiffness: 400 }}
-          >
-            <AlertCircle className="w-7 h-7 text-white" />
-          </motion.div>
+
+          {/* Total Ganancias Estimadas */}
+          <div className="bg-gradient-to-br from-emerald-500/20 to-green-500/20 dark:from-emerald-600/20 dark:to-green-600/20 backdrop-blur-sm px-6 py-4 rounded-2xl shadow-lg border-2 border-emerald-300/50 dark:border-emerald-700/50">
+            <p className="text-xs text-gray-600 dark:text-gray-400 font-medium mb-1 flex items-center gap-1">
+              <TrendingUp className="w-4 h-4" />
+              Ganancia Total Estimada
+            </p>
+            <p className="text-2xl font-bold text-emerald-600 dark:text-emerald-400">
+              ${totalGananciasEstimadas.toLocaleString(undefined, {
+                minimumFractionDigits: 2,
+                maximumFractionDigits: 2,
+              })}
+            </p>
+          </div>
         </div>
 
         {/* Operations List */}
@@ -145,13 +170,18 @@ export function PendingOperationsSection({ operations, isLoading }: PendingOpera
                       </div>
 
                       {/* Center section: Exchange info */}
-                      <div className="flex-1 lg:text-center">
+                      <div className="flex-1 lg:text-center space-y-3">
                         <div className="inline-flex items-center gap-3 bg-white/60 dark:bg-gray-800/60 backdrop-blur-sm px-4 py-3 rounded-xl shadow-md">
                           <div className="text-right">
                             <p className="text-xs text-gray-500 dark:text-gray-400 font-medium">Entrega</p>
                             <p className="text-base font-bold text-gray-900 dark:text-white">
-                              {op.cantidad_entrada.toLocaleString()}
+                              {op.cantidad_entrada.toLocaleString()} {op.divisa_entrada || ''}
                             </p>
+                            {op.precio_entrada && (
+                              <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">
+                                @ ${op.precio_entrada.toLocaleString()}
+                              </p>
+                            )}
                           </div>
                           <div className="text-2xl">
                             <span className="animate-pulse">→</span>
@@ -159,31 +189,49 @@ export function PendingOperationsSection({ operations, isLoading }: PendingOpera
                           <div className="text-left">
                             <p className="text-xs text-gray-500 dark:text-gray-400 font-medium">Recibe</p>
                             <p className="text-base font-bold text-gray-900 dark:text-white">
-                              {op.cantidad_salida.toLocaleString()}
+                              {op.cantidad_salida.toLocaleString()} {op.divisa_salida || ''}
                             </p>
+                            {op.precio_salida && (
+                              <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">
+                                @ ${op.precio_salida.toLocaleString()}
+                              </p>
+                            )}
                           </div>
                         </div>
-                        <p className="text-xs text-gray-600 dark:text-gray-400 mt-2 font-semibold">
-                          {op.tipo_cambio}
-                        </p>
+
+                        {/* Tasa de cambio destacada */}
+                        <div className="inline-flex items-center gap-2 bg-gradient-to-r from-blue-500/10 to-indigo-500/10 dark:from-blue-600/20 dark:to-indigo-600/20 backdrop-blur-sm px-4 py-2 rounded-lg border border-blue-300/30 dark:border-blue-600/30 shadow-sm">
+                          <span className="text-xs font-medium text-gray-600 dark:text-gray-400">
+                            Tasa:
+                          </span>
+                          <span className="text-sm font-bold bg-gradient-to-r from-blue-600 to-indigo-600 dark:from-blue-400 dark:to-indigo-400 bg-clip-text text-transparent">
+                            {op.tasa_cambio
+                              ? `1 ${op.divisa_entrada} = ${op.tasa_cambio.toLocaleString(undefined, {
+                                  minimumFractionDigits: 2,
+                                  maximumFractionDigits: 2
+                                })} ${op.divisa_salida}`
+                              : op.tipo_cambio
+                            }
+                          </span>
+                        </div>
                       </div>
 
-                      {/* Right section: Profit */}
-                      <div className="flex-shrink-0 text-right">
-                        <div className="bg-gradient-to-br from-emerald-500/20 to-green-500/20 dark:from-emerald-600/20 dark:to-green-600/20 backdrop-blur-sm px-4 py-3 rounded-xl shadow-md border border-emerald-300/50 dark:border-emerald-700/50">
-                          <p className="text-xs text-gray-600 dark:text-gray-400 font-medium mb-1 flex items-center justify-end gap-1">
-                            <TrendingUp className="w-3 h-3" />
-                            Ganancia Est.
-                          </p>
-                          <p className="text-xl font-bold text-emerald-600 dark:text-emerald-400">
-                            {op.ganancia_bruta_usd != null
-                              ? `$${op.ganancia_bruta_usd.toLocaleString(undefined, {
-                                  minimumFractionDigits: 2,
-                                  maximumFractionDigits: 2,
-                                })}`
-                              : '-'}
-                          </p>
-                        </div>
+                      {/* Right section: Action Button */}
+                      <div className="flex-shrink-0 flex items-center">
+                        <motion.button
+                          onClick={() => handleComplete(op.id, op.numero_operacion)}
+                          disabled={completingId === op.id}
+                          whileHover={{ scale: completingId === op.id ? 1 : 1.05 }}
+                          whileTap={{ scale: 0.95 }}
+                          className={`px-6 py-4 rounded-xl font-semibold text-sm shadow-lg transition-all duration-300 flex items-center justify-center gap-2 ${
+                            completingId === op.id
+                              ? 'bg-gray-400 cursor-not-allowed'
+                              : 'bg-gradient-to-r from-blue-500 to-indigo-600 hover:from-blue-600 hover:to-indigo-700 text-white'
+                          }`}
+                        >
+                          <CheckCircle className="w-5 h-5" />
+                          <span>{completingId === op.id ? 'Completando...' : 'Completar'}</span>
+                        </motion.button>
                       </div>
                     </div>
                   </div>
