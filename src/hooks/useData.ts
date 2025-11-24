@@ -36,45 +36,45 @@ export function useData(user: UserProfile | null = null) {
     setLoading(prev => ({ ...prev, kpis: true }));
     try {
       const isManager = user?.rol === 'manager';
-
-      // Calcular operaciones del mes
       const today = new Date();
-      const monthStart = new Date(today.getFullYear(), today.getMonth(), 1).toISOString();
 
+      // Setup month query
+      const monthStart = new Date(today.getFullYear(), today.getMonth(), 1).toISOString();
       let mesQuery = supabase
         .from('operaciones_cambio')
         .select('ganancia_bruta_usd')
         .eq('estado', 'completada')
         .gte('created_at', monthStart);
-
       if (!isManager && user) {
         mesQuery = mesQuery.eq('user_id', user.id);
       }
 
-      const { data: mesOps, error: mesError } = await mesQuery;
-      if (mesError) throw mesError;
-
-      const gananciaMes = mesOps?.reduce((sum, op) => sum + (op.ganancia_bruta_usd || 0), 0) || 0;
-      const operacionesMes = mesOps?.length || 0;
-      const margenPromedio = operacionesMes > 0 ? gananciaMes / operacionesMes : 0;
-
-      // Calcular operaciones de hoy
+      // Setup today query
       const todayStart = new Date(today.getFullYear(), today.getMonth(), today.getDate()).toISOString();
-
       let todayQuery = supabase
         .from('operaciones_cambio')
         .select('ganancia_bruta_usd')
         .eq('estado', 'completada')
         .gte('created_at', todayStart);
-
       if (!isManager && user) {
         todayQuery = todayQuery.eq('user_id', user.id);
       }
 
-      const { data: todayOps, error: todayError } = await todayQuery;
+      // Execute queries in parallel
+      const [mesResult, todayResult] = await Promise.all([mesQuery, todayQuery]);
 
+      const { data: mesOps, error: mesError } = mesResult;
+      const { data: todayOps, error: todayError } = todayResult;
+
+      if (mesError) throw mesError;
       if (todayError) throw todayError;
 
+      // Calculate month KPIs
+      const gananciaMes = mesOps?.reduce((sum, op) => sum + (op.ganancia_bruta_usd || 0), 0) || 0;
+      const operacionesMes = mesOps?.length || 0;
+      const margenPromedio = operacionesMes > 0 ? gananciaMes / operacionesMes : 0;
+
+      // Calculate today KPIs
       const gananciaHoy = todayOps?.reduce((sum, op) => sum + (op.ganancia_bruta_usd || 0), 0) || 0;
       const operacionesHoy = todayOps?.length || 0;
 
@@ -85,9 +85,10 @@ export function useData(user: UserProfile | null = null) {
         operaciones_mes: operacionesMes,
         margen_promedio_mes: margenPromedio,
       });
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Error calculando KPIs:', error);
-      toast.error('Error calculando KPIs: ' + error.message);
+      const errorMessage = error instanceof Error ? error.message : 'Error calculando KPIs'
+      toast.error(errorMessage);
       setKpis(null);
     } finally {
       setLoading(prev => ({ ...prev, kpis: false }));
@@ -117,9 +118,10 @@ export function useData(user: UserProfile | null = null) {
       })) || [];
 
       setDailySummary(formattedData);
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Error cargando resumen diario:', error);
-      toast.error('Error cargando resumen diario');
+      const errorMessage = error instanceof Error ? error.message : 'Error cargando resumen diario'
+      toast.error(errorMessage);
       setDailySummary([]);
     } finally {
       setLoading(prev => ({ ...prev, dailySummary: false }));
@@ -169,9 +171,10 @@ export function useData(user: UserProfile | null = null) {
       }) || [];
 
       setRecentOperations(formattedData as RecentOperation[]);
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Error cargando operaciones recientes:', error);
-      toast.error('Error cargando operaciones recientes');
+      const errorMessage = error instanceof Error ? error.message : 'Error cargando operaciones recientes'
+      toast.error(errorMessage);
       setRecentOperations([]);
     } finally {
       setLoading(prev => ({ ...prev, recentOps: false }));
@@ -195,9 +198,10 @@ export function useData(user: UserProfile | null = null) {
       })) || [];
 
       setProfitByCurrency(formattedData as ProfitByCurrency[]);
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Error cargando ganancias por divisa:', error);
-      toast.error('Error cargando ganancias por divisa');
+      const errorMessage = error instanceof Error ? error.message : 'Error cargando ganancias por divisa'
+      toast.error(errorMessage);
       setProfitByCurrency([]);
     } finally {
       setLoading(prev => ({ ...prev, profitByCurrency: false }));
@@ -225,9 +229,10 @@ export function useData(user: UserProfile | null = null) {
       })) || [];
 
       setDivisas(formattedData);
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Error cargando divisas:', error);
-      toast.error('Error cargando lista de divisas');
+      const errorMessage = error instanceof Error ? error.message : 'Error cargando lista de divisas'
+      toast.error(errorMessage);
       setDivisas([]);
     } finally {
       setLoading(prev => ({ ...prev, divisas: false }));
@@ -282,9 +287,10 @@ export function useData(user: UserProfile | null = null) {
       }) || [];
 
       setPendingOperations(formattedData as PendingOperation[]);
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Error cargando operaciones pendientes:', error);
-      toast.error('Error cargando operaciones pendientes');
+      const errorMessage = error instanceof Error ? error.message : 'Error cargando operaciones pendientes'
+      toast.error(errorMessage);
       setPendingOperations([]);
     } finally {
       setLoading(prev => ({ ...prev, pendingOps: false }));
@@ -319,9 +325,10 @@ export function useData(user: UserProfile | null = null) {
 
       toast.success(`${divisa.divisa} actualizada correctamente`);
       loadDivisasData();
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Error actualizando:', error);
-      toast.error('Error actualizando divisa: ' + error.message);
+      const errorMessage = error instanceof Error ? error.message : 'Error actualizando divisa'
+      toast.error(errorMessage);
     }
     setLoading(prev => ({ ...prev, divisas: false }));
   }, [loadDivisasData]);
@@ -347,9 +354,10 @@ export function useData(user: UserProfile | null = null) {
         loadRecentOperationsData(),
         loadKpisData(),
       ]);
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Error completando operación:', error);
-      toast.error('Error al completar operación: ' + error.message);
+      const errorMessage = error instanceof Error ? error.message : 'Error al completar operación'
+      toast.error(errorMessage);
     } finally {
       setLoading(prev => ({ ...prev, pendingOps: false }));
     }

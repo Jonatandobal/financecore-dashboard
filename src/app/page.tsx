@@ -11,28 +11,20 @@ import { BotTab } from '@/components/bot/BotTab';
 import { ProfileTab } from '@/components/profile/ProfileTab';
 import { UsersManagementTab } from '@/components/users/UsersManagementTab';
 import { LoginPage } from '@/components/auth/LoginPage';
-import { useData } from '@/hooks/useData';
 import { useAuth } from '@/contexts/AuthContext';
+import { useDataContext } from '@/contexts/DataContext';
 import type { Divisa } from '@/types';
 
 export default function HemisferiaDashboard() {
-  const { isAuthenticated, loading: authLoading, user } = useAuth();
+  const { isAuthenticated, loading: authLoading } = useAuth();
   const [activeTab, setActiveTab] = useState('dashboard');
 
   const {
-    loading,
-    kpis,
-    dailySummary,
-    recentOperations,
-    profitByCurrency,
     divisas,
-    pendingOperations,
     setDivisas,
     loadAllDashboardData,
     loadDivisasData,
-    updateDivisa,
-    completeOperation,
-  } = useData(user);
+  } = useDataContext();
 
   useEffect(() => {
     loadAllDashboardData();
@@ -42,10 +34,19 @@ export default function HemisferiaDashboard() {
   const handleDivisaChange = useCallback((index: number, field: keyof Divisa, value: string) => {
     const newDivisas = [...divisas];
     const numValue = parseFloat(value);
-    newDivisas[index] = {
-      ...newDivisas[index],
-      [field]: isNaN(numValue) ? newDivisas[index][field] : numValue
-    };
+
+    // Handle empty string case
+    if (value === '') {
+      newDivisas[index] = {
+        ...newDivisas[index],
+        [field]: ''
+      };
+    } else {
+      newDivisas[index] = {
+        ...newDivisas[index],
+        [field]: isNaN(numValue) ? newDivisas[index][field] : numValue
+      };
+    }
     setDivisas(newDivisas);
   }, [divisas, setDivisas]);
 
@@ -84,32 +85,15 @@ export default function HemisferiaDashboard() {
             transition={{ duration: 0.3 }}
           >
             {activeTab === 'dashboard' && (
-              <DashboardTab
-                kpis={kpis}
-                dailySummary={dailySummary}
-                recentOperations={recentOperations}
-                profitByCurrency={profitByCurrency}
-                divisas={divisas}
-                pendingOperations={pendingOperations}
-                loading={loading}
-                onCompleteOperation={completeOperation}
-              />
+              <DashboardTab />
             )}
 
             {activeTab === 'operaciones' && (
-              <OperacionesEnCursoTab
-                pendingOperations={pendingOperations}
-                loading={loading}
-                onCompleteOperation={completeOperation}
-              />
+              <OperacionesEnCursoTab />
             )}
 
             {activeTab === 'divisas' && (
               <DivisasTab
-                divisas={divisas}
-                loading={loading}
-                onRefresh={loadDivisasData}
-                onUpdate={updateDivisa}
                 onChange={handleDivisaChange}
               />
             )}

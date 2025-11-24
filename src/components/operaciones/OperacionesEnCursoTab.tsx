@@ -3,19 +3,16 @@
 import React from 'react';
 import { motion } from 'framer-motion';
 import { PendingOperationsSection } from '@/components/dashboard/PendingOperationsSection';
+import { useDataContext } from '@/contexts/DataContext';
 import type { PendingOperation, LoadingState } from '@/types';
 
-interface OperacionesEnCursoTabProps {
-  pendingOperations: PendingOperation[];
-  loading: LoadingState;
-  onCompleteOperation: (operationId: string) => Promise<void>;
-}
+export function OperacionesEnCursoTab() {
+  const {
+    pendingOperations,
+    loading,
+    completeOperation,
+  } = useDataContext();
 
-export function OperacionesEnCursoTab({
-  pendingOperations,
-  loading,
-  onCompleteOperation
-}: OperacionesEnCursoTabProps) {
   return (
     <motion.div
       initial={{ opacity: 0 }}
@@ -26,7 +23,7 @@ export function OperacionesEnCursoTab({
       <PendingOperationsSection
         operations={pendingOperations}
         isLoading={loading.pendingOps}
-        onCompleteOperation={onCompleteOperation}
+        onCompleteOperation={completeOperation}
         showProfits={false}
       />
     </motion.div>

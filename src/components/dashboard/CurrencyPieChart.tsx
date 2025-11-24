@@ -26,7 +26,7 @@ export function CurrencyPieChart({ data, isLoading }: CurrencyPieChartProps) {
     const top5 = sortedEntries.slice(0, 5);
     const othersValue = sortedEntries.slice(5).reduce((sum, [, value]) => sum + value, 0);
 
-    let result = top5.map(([name, value]) => ({ name, value }));
+    const result = top5.map(([name, value]) => ({ name, value }));
 
     if (othersValue > 0) {
       result.push({ name: 'Otros', value: othersValue });

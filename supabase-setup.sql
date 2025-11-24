@@ -188,7 +188,7 @@ BEGIN
     NEW.id,
     NEW.email,
     COALESCE(NEW.raw_user_meta_data->>'nombre_completo', NEW.email),
-    COALESCE(NEW.raw_user_meta_data->>'rol', 'usuario')
+    'usuario' -- Forzar siempre el rol de 'usuario'
   );
   RETURN NEW;
 END;
