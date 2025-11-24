@@ -8,10 +8,15 @@ import { DashboardTab } from '@/components/dashboard/DashboardTab';
 import { OperacionesEnCursoTab } from '@/components/operaciones/OperacionesEnCursoTab';
 import { DivisasTab } from '@/components/divisas/DivisasTab';
 import { BotTab } from '@/components/bot/BotTab';
+import { ProfileTab } from '@/components/profile/ProfileTab';
+import { UsersManagementTab } from '@/components/users/UsersManagementTab';
+import { LoginPage } from '@/components/auth/LoginPage';
 import { useData } from '@/hooks/useData';
+import { useAuth } from '@/contexts/AuthContext';
 import type { Divisa } from '@/types';
 
 export default function HemisferiaDashboard() {
+  const { isAuthenticated, loading: authLoading, user } = useAuth();
   const [activeTab, setActiveTab] = useState('dashboard');
 
   const {
@@ -27,7 +32,7 @@ export default function HemisferiaDashboard() {
     loadDivisasData,
     updateDivisa,
     completeOperation,
-  } = useData();
+  } = useData(user);
 
   useEffect(() => {
     loadAllDashboardData();
@@ -43,6 +48,23 @@ export default function HemisferiaDashboard() {
     };
     setDivisas(newDivisas);
   }, [divisas, setDivisas]);
+
+  // Show loading state while checking authentication
+  if (authLoading) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-gray-50 via-blue-50/30 to-purple-50/30 dark:from-gray-900 dark:via-blue-950/20 dark:to-purple-950/20 flex items-center justify-center">
+        <div className="text-center">
+          <div className="w-16 h-16 border-4 border-blue-500/30 border-t-blue-500 rounded-full animate-spin mx-auto mb-4" />
+          <p className="text-gray-600 dark:text-gray-400">Cargando...</p>
+        </div>
+      </div>
+    )
+  }
+
+  // Show login page if not authenticated
+  if (!isAuthenticated) {
+    return <LoginPage />
+  }
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-50 via-blue-50/30 to-purple-50/30 dark:from-gray-900 dark:via-blue-950/20 dark:to-purple-950/20 transition-colors duration-500">
@@ -93,6 +115,10 @@ export default function HemisferiaDashboard() {
             )}
 
             {activeTab === 'bot' && <BotTab />}
+
+            {activeTab === 'profile' && <ProfileTab />}
+
+            {activeTab === 'users' && <UsersManagementTab />}
           </motion.div>
         </main>
 
