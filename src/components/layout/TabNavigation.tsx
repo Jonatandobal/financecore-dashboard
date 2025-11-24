@@ -2,21 +2,37 @@
 
 import React from 'react';
 import { motion } from 'framer-motion';
-import { BarChart3, Coins, Bot, Clock } from 'lucide-react';
+import { BarChart3, Coins, Bot, Clock, User, Users } from 'lucide-react';
+import { useAuth } from '@/contexts/AuthContext';
 
 interface TabNavigationProps {
   activeTab: string;
   onTabChange: (tab: string) => void;
 }
 
-const tabs = [
+const baseTabs = [
   { id: 'dashboard', name: 'Dashboard', icon: BarChart3, emoji: '📊' },
   { id: 'operaciones', name: 'En Curso', icon: Clock, emoji: '⏳' },
   { id: 'divisas', name: 'Divisas', icon: Coins, emoji: '💰' },
   { id: 'bot', name: 'Bot Status', icon: Bot, emoji: '🤖' },
 ];
 
+const userTabs = [
+  { id: 'profile', name: 'Perfil', icon: User, emoji: '👤' },
+];
+
+const managerTabs = [
+  { id: 'users', name: 'Usuarios', icon: Users, emoji: '👥', requiresManager: true },
+];
+
 export function TabNavigation({ activeTab, onTabChange }: TabNavigationProps) {
+  const { user } = useAuth();
+
+  const tabs = [
+    ...baseTabs,
+    ...userTabs,
+    ...(user?.rol === 'manager' ? managerTabs : []),
+  ];
   return (
     <aside className="fixed left-0 top-0 h-screen w-24 lg:w-32 flex flex-col items-center py-8 px-4 z-30">
       {/* Background with glassmorphism */}

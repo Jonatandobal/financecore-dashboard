@@ -11,10 +11,11 @@ import type {
   ProfitByCurrency,
   Divisa,
   LoadingState,
-  PendingOperation
+  PendingOperation,
+  UserProfile
 } from '@/types';
 
-export function useData() {
+export function useData(user: UserProfile | null = null) {
   const [loading, setLoading] = useState<LoadingState>({
     kpis: false,
     dailySummary: false,
@@ -34,23 +35,43 @@ export function useData() {
   const loadKpisData = useCallback(async () => {
     setLoading(prev => ({ ...prev, kpis: true }));
     try {
-      // Usar la vista ganancias_mes_actual
-      const { data: gananciaMesData, error: gananciaMesError } = await supabase
-        .from('ganancias_mes_actual')
-        .select('*')
-        .single();
+      const isManager = user?.rol === 'manager';
 
-      if (gananciaMesError) throw gananciaMesError;
-
-      // Calcular operaciones de hoy manualmente
+      // Calcular operaciones del mes
       const today = new Date();
+      const monthStart = new Date(today.getFullYear(), today.getMonth(), 1).toISOString();
+
+      let mesQuery = supabase
+        .from('operaciones_cambio')
+        .select('ganancia_bruta_usd')
+        .eq('estado', 'completada')
+        .gte('created_at', monthStart);
+
+      if (!isManager && user) {
+        mesQuery = mesQuery.eq('user_id', user.id);
+      }
+
+      const { data: mesOps, error: mesError } = await mesQuery;
+      if (mesError) throw mesError;
+
+      const gananciaMes = mesOps?.reduce((sum, op) => sum + (op.ganancia_bruta_usd || 0), 0) || 0;
+      const operacionesMes = mesOps?.length || 0;
+      const margenPromedio = operacionesMes > 0 ? gananciaMes / operacionesMes : 0;
+
+      // Calcular operaciones de hoy
       const todayStart = new Date(today.getFullYear(), today.getMonth(), today.getDate()).toISOString();
 
-      const { data: todayOps, error: todayError } = await supabase
+      let todayQuery = supabase
         .from('operaciones_cambio')
         .select('ganancia_bruta_usd')
         .eq('estado', 'completada')
         .gte('created_at', todayStart);
+
+      if (!isManager && user) {
+        todayQuery = todayQuery.eq('user_id', user.id);
+      }
+
+      const { data: todayOps, error: todayError } = await todayQuery;
 
       if (todayError) throw todayError;
 
@@ -60,9 +81,9 @@ export function useData() {
       setKpis({
         ganancia_hoy: gananciaHoy,
         operaciones_hoy: operacionesHoy,
-        ganancia_mes: gananciaMesData.ganancia_total_usd || 0,
-        operaciones_mes: gananciaMesData.total_operaciones || 0,
-        margen_promedio_mes: gananciaMesData.margen_promedio || 0,
+        ganancia_mes: gananciaMes,
+        operaciones_mes: operacionesMes,
+        margen_promedio_mes: margenPromedio,
       });
     } catch (error: any) {
       console.error('Error calculando KPIs:', error);
@@ -71,7 +92,7 @@ export function useData() {
     } finally {
       setLoading(prev => ({ ...prev, kpis: false }));
     }
-  }, []);
+  }, [user]);
 
   const loadDailySummaryData = useCallback(async () => {
     setLoading(prev => ({ ...prev, dailySummary: true }));
@@ -108,40 +129,37 @@ export function useData() {
   const loadRecentOperationsData = useCallback(async () => {
     setLoading(prev => ({ ...prev, recentOps: true }));
     try {
-      // Usar la vista operaciones_completadas
-      const { data, error } = await supabase
-        .from('operaciones_completadas')
-        .select(`
-          numero_operacion,
-          fecha_creacion,
-          usuario_telegram_nombre,
-          cantidad_entrada,
-          cantidad_salida,
-          ganancia_bruta_usd,
-          tipo_cambio
-        `)
-        .order('fecha_completada', { ascending: false })
+      const isManager = user?.rol === 'manager';
+
+      let query = supabase
+        .from('operaciones_cambio')
+        .select('*')
+        .eq('estado', 'completada')
+        .order('updated_at', { ascending: false })
         .limit(7);
+
+      if (!isManager && user) {
+        query = query.eq('user_id', user.id);
+      }
+
+      const { data, error } = await query;
 
       if (error) throw error;
 
       const formattedData = data?.map(op => {
-        // Extraer divisas del tipo_cambio (formato: "ARS → USD")
-        const [divisa_entrada, divisa_salida] = op.tipo_cambio?.split(' → ') || ['', ''];
-        
         return {
           numero_operacion: op.numero_operacion,
-          created_at: op.fecha_creacion,
-          usuario_telegram_nombre: op.usuario_telegram_nombre,
+          created_at: op.created_at,
+          usuario_whatsapp_nombre: op.usuario_whatsapp_nombre,
           cantidad_entrada: op.cantidad_entrada,
-          divisa_entrada: divisa_entrada,
+          divisa_entrada: op.divisa_entrada,
           cantidad_salida: op.cantidad_salida,
-          divisa_salida: divisa_salida,
+          divisa_salida: op.divisa_salida,
           ganancia_bruta_usd: parseFloat(op.ganancia_bruta_usd || '0'),
           estado: 'completada',
-          entregado: `${op.cantidad_entrada || ''} ${divisa_entrada}`,
-          recibido: `${op.cantidad_salida || ''} ${divisa_salida}`,
-          created_at_formatted: new Date(op.fecha_creacion).toLocaleString('es-AR', {
+          entregado: `${op.cantidad_entrada || ''} ${op.divisa_entrada || ''}`,
+          recibido: `${op.cantidad_salida || ''} ${op.divisa_salida || ''}`,
+          created_at_formatted: new Date(op.created_at).toLocaleString('es-AR', {
             day: '2-digit',
             month: '2-digit',
             hour: '2-digit',
@@ -158,7 +176,7 @@ export function useData() {
     } finally {
       setLoading(prev => ({ ...prev, recentOps: false }));
     }
-  }, []);
+  }, [user]);
 
   const loadProfitByCurrencyData = useCallback(async () => {
     setLoading(prev => ({ ...prev, profitByCurrency: true }));
@@ -219,33 +237,49 @@ export function useData() {
   const loadPendingOperationsData = useCallback(async () => {
     setLoading(prev => ({ ...prev, pendingOps: true }));
     try {
-      // Usar la vista operaciones_pendientes
-      const { data, error } = await supabase
-        .from('operaciones_pendientes')
+      const isManager = user?.rol === 'manager';
+
+      let query = supabase
+        .from('operaciones_cambio')
         .select('*')
-        .order('horas_transcurridas', { ascending: false });
+        .eq('estado', 'pendiente')
+        .order('created_at', { ascending: false });
+
+      if (!isManager && user) {
+        query = query.eq('user_id', user.id);
+      }
+
+      const { data, error } = await query;
 
       if (error) throw error;
 
-      const formattedData = data?.map(op => ({
-        id: op.id,
-        numero_operacion: op.numero_operacion,
-        usuario_telegram_nombre: op.usuario_telegram_nombre,
-        usuario_telegram_id: op.usuario_telegram_id,
-        tipo_cambio: op.tipo_cambio,
-        cantidad_entrada: parseFloat(op.cantidad_entrada || '0'),
-        cantidad_salida: parseFloat(op.cantidad_salida || '0'),
-        ganancia_bruta_usd: parseFloat(op.ganancia_bruta_usd || '0'),
-        estado: op.estado,
-        created_at: op.created_at,
-        horas_transcurridas: parseFloat(op.horas_transcurridas || '0'),
-        prioridad: op.prioridad as 'ALTA' | 'MEDIA' | 'NORMAL',
-        tasa_cambio: parseFloat(op.tasa_cambio || '0'),
-        precio_entrada: parseFloat(op.precio_entrada || '0'),
-        precio_salida: parseFloat(op.precio_salida || '0'),
-        divisa_entrada: op.divisa_entrada,
-        divisa_salida: op.divisa_salida
-      })) || [];
+      const formattedData = data?.map(op => {
+        const createdAt = new Date(op.created_at);
+        const now = new Date();
+        const horasTranscurridas = (now.getTime() - createdAt.getTime()) / (1000 * 60 * 60);
+        const prioridad = horasTranscurridas > 24 ? 'ALTA' : horasTranscurridas > 12 ? 'MEDIA' : 'NORMAL';
+
+        return {
+          id: op.id,
+          numero_operacion: op.numero_operacion,
+          usuario_whatsapp_nombre: op.usuario_whatsapp_nombre,
+          usuario_whatsapp_id: op.usuario_whatsapp_id,
+          tipo_cambio: `${op.divisa_entrada} → ${op.divisa_salida}`,
+          cantidad_entrada: parseFloat(op.cantidad_entrada || '0'),
+          cantidad_salida: parseFloat(op.cantidad_salida || '0'),
+          ganancia_bruta_usd: parseFloat(op.ganancia_bruta_usd || '0'),
+          estado: op.estado,
+          created_at: op.created_at,
+          horas_transcurridas: horasTranscurridas,
+          prioridad: prioridad as 'ALTA' | 'MEDIA' | 'NORMAL',
+          tasa_cambio: parseFloat(op.tasa_cambio || '0'),
+          precio_entrada: parseFloat(op.precio_entrada || '0'),
+          precio_salida: parseFloat(op.precio_salida || '0'),
+          divisa_entrada: op.divisa_entrada,
+          divisa_salida: op.divisa_salida,
+          user_id: op.user_id
+        };
+      }) || [];
 
       setPendingOperations(formattedData as PendingOperation[]);
     } catch (error: any) {
@@ -255,7 +289,7 @@ export function useData() {
     } finally {
       setLoading(prev => ({ ...prev, pendingOps: false }));
     }
-  }, []);
+  }, [user]);
 
   const loadAllDashboardData = useCallback(async () => {
     await Promise.all([

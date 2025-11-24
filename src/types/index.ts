@@ -18,7 +18,7 @@ export interface RecentOperation {
   numero_operacion: string;
   created_at: string;
   created_at_formatted?: string;
-  usuario_telegram_nombre: string | null;
+  usuario_whatsapp_nombre: string | null;
   entregado: string;
   recibido: string;
   ganancia_bruta_usd: number | null;
@@ -46,8 +46,8 @@ export interface Divisa {
 export interface PendingOperation {
   id: string;
   numero_operacion: number;
-  usuario_telegram_nombre: string | null;
-  usuario_telegram_id: string | null;
+  usuario_whatsapp_nombre: string | null;
+  usuario_whatsapp_id: string | null;
   tipo_cambio: string;
   cantidad_entrada: number;
   cantidad_salida: number;
@@ -61,6 +61,7 @@ export interface PendingOperation {
   precio_salida: number | null;
   divisa_entrada: string | null;
   divisa_salida: string | null;
+  user_id: string | null;
 }
 
 export interface LoadingState {
@@ -73,3 +74,24 @@ export interface LoadingState {
 }
 
 export type MessageType = 'success' | 'warning' | 'error';
+
+// Tipos para autenticación y perfiles de usuario
+export type UserRole = 'usuario' | 'manager';
+
+export interface UserProfile {
+  id: string;
+  email: string;
+  nombre_completo: string;
+  telefono: string | null;
+  whatsapp_id: string | null;
+  whatsapp_nombre: string | null;
+  rol: UserRole;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface AuthState {
+  user: UserProfile | null;
+  loading: boolean;
+  isAuthenticated: boolean;
+}

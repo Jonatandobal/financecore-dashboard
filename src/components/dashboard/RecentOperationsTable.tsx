@@ -108,7 +108,7 @@ export function RecentOperationsTable({ operations, isLoading }: RecentOperation
                         {op.created_at_formatted}
                       </td>
                       <td className="px-4 py-4 whitespace-nowrap text-sm font-medium text-gray-900 dark:text-white truncate max-w-[120px]">
-                        {op.usuario_telegram_nombre || 'N/A'}
+                        {op.usuario_whatsapp_nombre || 'N/A'}
                       </td>
                       <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-700 dark:text-gray-300">
                         {op.entregado}

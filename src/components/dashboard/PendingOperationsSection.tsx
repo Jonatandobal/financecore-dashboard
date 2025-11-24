@@ -160,7 +160,7 @@ export function PendingOperationsSection({ operations, isLoading, onCompleteOper
                             <div className="flex items-center gap-1.5 text-sm">
                               <User className="w-3.5 h-3.5 text-gray-500 dark:text-gray-400" />
                               <span className="font-medium text-gray-700 dark:text-gray-300 truncate text-xs">
-                                {op.usuario_telegram_nombre || 'Cliente'}
+                                {op.usuario_whatsapp_nombre || 'Cliente'}
                               </span>
                             </div>
                           </div>

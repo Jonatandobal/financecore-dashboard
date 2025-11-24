@@ -8,7 +8,7 @@ export function BotTab() {
   const statusItems = [
     {
       icon: Activity,
-      label: 'Bot Telegram',
+      label: 'Bot WhatsApp',
       status: 'Activo',
       color: 'emerald',
     },

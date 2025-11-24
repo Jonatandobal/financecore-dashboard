@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Toaster } from "sonner";
 import { ThemeProvider } from "@/contexts/ThemeContext";
+import { AuthProvider } from "@/contexts/AuthContext";
 import "./globals.css";
 
 export const metadata: Metadata = {
@@ -17,13 +18,15 @@ export default function RootLayout({
     <html lang="es" suppressHydrationWarning>
       <body className="antialiased">
         <ThemeProvider>
-          {children}
-          <Toaster
-            position="top-right"
-            expand={true}
-            richColors
-            closeButton
-          />
+          <AuthProvider>
+            {children}
+            <Toaster
+              position="top-right"
+              expand={true}
+              richColors
+              closeButton
+            />
+          </AuthProvider>
         </ThemeProvider>
       </body>
     </html>
