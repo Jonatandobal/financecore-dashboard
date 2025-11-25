@@ -3,17 +3,21 @@
 import React from 'react';
 import { motion } from 'framer-motion';
 import { RefreshCw, Save } from 'lucide-react';
+import { useDataContext } from '@/contexts/DataContext';
 import type { Divisa, LoadingState } from '@/types';
 
 interface DivisasTabProps {
-  divisas: Divisa[];
-  loading: LoadingState;
-  onRefresh: () => void;
-  onUpdate: (divisa: Divisa) => void;
   onChange: (index: number, field: keyof Divisa, value: string) => void;
 }
 
-export function DivisasTab({ divisas, loading, onRefresh, onUpdate, onChange }: DivisasTabProps) {
+export function DivisasTab({ onChange }: DivisasTabProps) {
+  const {
+    divisas,
+    loading,
+    loadDivisasData,
+    updateDivisa,
+  } = useDataContext();
+
   const getCurrencyIcon = (divisa: string) => {
     const icons: Record<string, string> = {
       USD: '🇺🇸',
@@ -44,7 +48,7 @@ export function DivisasTab({ divisas, loading, onRefresh, onUpdate, onChange }: 
           </p>
         </div>
         <motion.button
-          onClick={onRefresh}
+          onClick={loadDivisasData}
           disabled={loading.divisas}
           whileHover={{ scale: 1.05 }}
           whileTap={{ scale: 0.95 }}
@@ -136,7 +140,7 @@ export function DivisasTab({ divisas, loading, onRefresh, onUpdate, onChange }: 
                       </td>
                       <td className="px-6 py-5">
                         <motion.button
-                          onClick={() => onUpdate(divisa)}
+                          onClick={() => updateDivisa(divisa)}
                           disabled={loading.divisas}
                           whileHover={{ scale: 1.05 }}
                           whileTap={{ scale: 0.95 }}

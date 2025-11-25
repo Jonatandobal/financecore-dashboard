@@ -101,18 +101,17 @@ export function UsersManagementTab() {
       if (authError) throw authError
 
       if (authData.user) {
-        // Create profile
+        // Update profile
         const { error: profileError } = await supabase
           .from('perfiles')
-          .insert({
-            id: authData.user.id,
-            email: formData.email,
+          .update({
             nombre_completo: formData.nombre_completo,
             telefono: formData.telefono || null,
             whatsapp_id: formData.whatsapp_id || null,
             whatsapp_nombre: formData.whatsapp_nombre || null,
             rol: formData.rol,
           })
+          .eq('id', authData.user.id)
 
         if (profileError) throw profileError
 
@@ -120,9 +119,10 @@ export function UsersManagementTab() {
         setShowModal(false)
         loadUsers()
       }
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Error creating user:', error)
-      toast.error(error.message || 'Error al crear usuario')
+      const errorMessage = error instanceof Error ? error.message : 'Error al crear usuario'
+      toast.error(errorMessage)
     }
   }
 
@@ -146,9 +146,10 @@ export function UsersManagementTab() {
       toast.success('Usuario actualizado correctamente')
       setShowModal(false)
       loadUsers()
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Error updating user:', error)
-      toast.error(error.message || 'Error al actualizar usuario')
+      const errorMessage = error instanceof Error ? error.message : 'Error al actualizar usuario'
+      toast.error(errorMessage)
     }
   }
 
@@ -165,9 +166,10 @@ export function UsersManagementTab() {
 
       toast.success('Usuario eliminado correctamente')
       loadUsers()
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Error deleting user:', error)
-      toast.error(error.message || 'Error al eliminar usuario')
+      const errorMessage = error instanceof Error ? error.message : 'Error al eliminar usuario'
+      toast.error(errorMessage)
     }
   }
 

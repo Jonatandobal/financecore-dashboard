@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Toaster } from "sonner";
 import { ThemeProvider } from "@/contexts/ThemeContext";
 import { AuthProvider } from "@/contexts/AuthContext";
+import { DataProvider } from "@/contexts/DataContext";
 import "./globals.css";
 
 export const metadata: Metadata = {
@@ -19,13 +20,15 @@ export default function RootLayout({
       <body className="antialiased">
         <ThemeProvider>
           <AuthProvider>
-            {children}
-            <Toaster
-              position="top-right"
+            <DataProvider>
+              {children}
+              <Toaster
+                position="top-right"
               expand={true}
               richColors
               closeButton
             />
+            </DataProvider>
           </AuthProvider>
         </ThemeProvider>
       </body>

@@ -8,29 +8,21 @@ import { ProfitChart } from './ProfitChart';
 import { CurrencyPieChart } from './CurrencyPieChart';
 import { RecentOperationsTable } from './RecentOperationsTable';
 import { PendingOperationsSection } from './PendingOperationsSection';
+import { useDataContext } from '@/contexts/DataContext';
 import type { KpiData, DailySummary, RecentOperation, ProfitByCurrency, Divisa, LoadingState, PendingOperation } from '@/types';
 
-interface DashboardTabProps {
-  kpis: KpiData | null;
-  dailySummary: DailySummary[];
-  recentOperations: RecentOperation[];
-  profitByCurrency: ProfitByCurrency[];
-  divisas: Divisa[];
-  pendingOperations: PendingOperation[];
-  loading: LoadingState;
-  onCompleteOperation: (operationId: string) => Promise<void>;
-}
+export function DashboardTab() {
+  const {
+    kpis,
+    dailySummary,
+    recentOperations,
+    profitByCurrency,
+    divisas,
+    pendingOperations,
+    loading,
+    completeOperation,
+  } = useDataContext();
 
-export function DashboardTab({
-  kpis,
-  dailySummary,
-  recentOperations,
-  profitByCurrency,
-  divisas,
-  pendingOperations,
-  loading,
-  onCompleteOperation
-}: DashboardTabProps) {
   const stockUSD = useMemo(() => {
     return divisas.find(d => d.divisa === 'USD')?.stock_disponible || 0;
   }, [divisas]);
@@ -80,7 +72,7 @@ export function DashboardTab({
       <PendingOperationsSection
         operations={pendingOperations}
         isLoading={loading.pendingOps}
-        onCompleteOperation={onCompleteOperation}
+        onCompleteOperation={completeOperation}
       />
 
       {/* Charts Section */}

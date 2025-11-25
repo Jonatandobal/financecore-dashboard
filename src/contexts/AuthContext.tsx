@@ -79,8 +79,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       }
 
       return { success: false, error: 'No se pudo iniciar sesión' }
-    } catch (error: any) {
-      return { success: false, error: error.message || 'Error al iniciar sesión' }
+    } catch (error: unknown) {
+      const errorMessage = error instanceof Error ? error.message : 'Error al iniciar sesión'
+      return { success: false, error: errorMessage }
     }
   }
 
@@ -106,8 +107,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
       setUser({ ...user, ...data })
       return { success: true }
-    } catch (error: any) {
-      return { success: false, error: error.message || 'Error al actualizar perfil' }
+    } catch (error: unknown) {
+      const errorMessage = error instanceof Error ? error.message : 'Error al actualizar perfil'
+      return { success: false, error: errorMessage }
     }
   }
 
