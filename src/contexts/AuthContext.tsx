@@ -7,6 +7,7 @@ import { User } from '@supabase/supabase-js'
 
 interface AuthContextType extends AuthState {
   login: (email: string, password: string) => Promise<{ success: boolean; error?: string }>
+  register: (email: string, password: string, nombreCompleto: string, telefono?: string) => Promise<{ success: boolean; error?: string }>
   logout: () => Promise<void>
   updateProfile: (data: Partial<UserProfile>) => Promise<{ success: boolean; error?: string }>
 }
@@ -85,6 +86,57 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   }
 
+  async function register(email: string, password: string, nombreCompleto: string, telefono?: string) {
+    try {
+      const { data, error } = await supabase.auth.signUp({
+        email,
+        password,
+        options: {
+          data: {
+            nombre_completo: nombreCompleto,
+            telefono: telefono || null,
+          }
+        }
+      })
+
+      if (error) throw error
+
+      if (data.user) {
+        // Create profile manually since we need to ensure it exists
+        const { error: profileError } = await supabase
+          .from('perfiles')
+          .insert({
+            id: data.user.id,
+            email: email,
+            nombre_completo: nombreCompleto,
+            telefono: telefono || null,
+            rol: 'usuario'
+          })
+
+        if (profileError) {
+          // Profile might already exist from trigger, try to update instead
+          const { error: updateError } = await supabase
+            .from('perfiles')
+            .update({
+              nombre_completo: nombreCompleto,
+              telefono: telefono || null,
+            })
+            .eq('id', data.user.id)
+
+          if (updateError) throw updateError
+        }
+
+        await loadUserProfile(data.user.id)
+        return { success: true }
+      }
+
+      return { success: false, error: 'No se pudo crear el usuario' }
+    } catch (error: unknown) {
+      const errorMessage = error instanceof Error ? error.message : 'Error al registrar usuario'
+      return { success: false, error: errorMessage }
+    }
+  }
+
   async function logout() {
     try {
       await supabase.auth.signOut()
@@ -120,6 +172,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         loading,
         isAuthenticated: !!user,
         login,
+        register,
         logout,
         updateProfile,
       }}
