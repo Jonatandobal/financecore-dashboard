@@ -3,6 +3,14 @@
 -- Sistema de Perfiles Usuario y Manager
 -- =====================================================
 
+-- Helper function to check for manager role
+CREATE OR REPLACE FUNCTION is_manager()
+RETURNS BOOLEAN AS $$
+BEGIN
+  RETURN auth.jwt()->>'user_role' = 'manager';
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER;
+
 -- 1. CREAR TABLA DE PERFILES
 -- =====================================================
 CREATE TABLE IF NOT EXISTS public.perfiles (
@@ -34,12 +42,7 @@ CREATE POLICY "Usuarios pueden ver su propio perfil"
 CREATE POLICY "Managers pueden ver todos los perfiles"
   ON public.perfiles
   FOR SELECT
-  USING (
-    EXISTS (
-      SELECT 1 FROM public.perfiles
-      WHERE id = auth.uid() AND rol = 'manager'
-    )
-  );
+  USING (is_manager());
 
 -- Los usuarios pueden actualizar su propio perfil
 CREATE POLICY "Usuarios pueden actualizar su propio perfil"
@@ -52,34 +55,19 @@ CREATE POLICY "Usuarios pueden actualizar su propio perfil"
 CREATE POLICY "Managers pueden crear perfiles"
   ON public.perfiles
   FOR INSERT
-  WITH CHECK (
-    EXISTS (
-      SELECT 1 FROM public.perfiles
-      WHERE id = auth.uid() AND rol = 'manager'
-    )
-  );
+  WITH CHECK (is_manager());
 
 -- Los managers pueden actualizar cualquier perfil
 CREATE POLICY "Managers pueden actualizar perfiles"
   ON public.perfiles
   FOR UPDATE
-  USING (
-    EXISTS (
-      SELECT 1 FROM public.perfiles
-      WHERE id = auth.uid() AND rol = 'manager'
-    )
-  );
+  USING (is_manager());
 
 -- Los managers pueden eliminar perfiles
 CREATE POLICY "Managers pueden eliminar perfiles"
   ON public.perfiles
   FOR DELETE
-  USING (
-    EXISTS (
-      SELECT 1 FROM public.perfiles
-      WHERE id = auth.uid() AND rol = 'manager'
-    )
-  );
+  USING (is_manager());
 
 -- 4. ACTUALIZAR TABLA OPERACIONES_CAMBIO
 -- =====================================================
@@ -131,23 +119,14 @@ CREATE POLICY "Usuarios pueden ver sus operaciones"
   ON public.operaciones_cambio
   FOR SELECT
   USING (
-    auth.uid() = user_id OR
-    EXISTS (
-      SELECT 1 FROM public.perfiles
-      WHERE id = auth.uid() AND rol = 'manager'
-    )
+    auth.uid() = user_id OR is_manager()
   );
 
 -- Los managers pueden ver todas las operaciones
 CREATE POLICY "Managers pueden ver todas las operaciones"
   ON public.operaciones_cambio
   FOR SELECT
-  USING (
-    EXISTS (
-      SELECT 1 FROM public.perfiles
-      WHERE id = auth.uid() AND rol = 'manager'
-    )
-  );
+  USING (is_manager());
 
 -- Los usuarios pueden crear operaciones
 CREATE POLICY "Usuarios pueden crear operaciones"
@@ -160,23 +139,14 @@ CREATE POLICY "Usuarios pueden actualizar sus operaciones"
   ON public.operaciones_cambio
   FOR UPDATE
   USING (
-    auth.uid() = user_id OR
-    EXISTS (
-      SELECT 1 FROM public.perfiles
-      WHERE id = auth.uid() AND rol = 'manager'
-    )
+    auth.uid() = user_id OR is_manager()
   );
 
 -- Los managers pueden actualizar cualquier operación
 CREATE POLICY "Managers pueden actualizar cualquier operación"
   ON public.operaciones_cambio
   FOR UPDATE
-  USING (
-    EXISTS (
-      SELECT 1 FROM public.perfiles
-      WHERE id = auth.uid() AND rol = 'manager'
-    )
-  );
+  USING (is_manager());
 
 -- 6. FUNCIÓN PARA CREAR PERFIL AUTOMÁTICAMENTE AL REGISTRAR USUARIO
 -- =====================================================
@@ -190,6 +160,10 @@ BEGIN
     COALESCE(NEW.raw_user_meta_data->>'nombre_completo', NEW.email),
     'usuario' -- Forzar siempre el rol de 'usuario'
   );
+
+  -- Set the user_role claim
+  PERFORM set_claim(NEW.id, 'user_role', 'usuario');
+
   RETURN NEW;
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;

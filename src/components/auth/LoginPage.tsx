@@ -22,7 +22,7 @@ export function LoginPage() {
       if (!result.success) {
         setError(result.error || 'Error al iniciar sesión')
       }
-    } catch (err) {
+    } catch {
       setError('Error inesperado al iniciar sesión')
     } finally {
       setLoading(false)
