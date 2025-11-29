@@ -6,17 +6,20 @@
     "dev": "next dev --turbopack",
     "build": "next build --turbopack",
     "start": "next start",
-    "lint": "eslint"
+    "lint": "eslint",
+    "create-admin": "node --experimental-specifier-resolution=node scripts/create-admin.js"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.75.1",
+    "dotenv": "^17.2.3",
     "framer-motion": "^12.23.24",
     "lucide-react": "^0.553.0",
     "next": "15.5.3",
     "react": "19.1.0",
     "react-dom": "19.1.0",
     "recharts": "^3.2.0",
-    "sonner": "^2.0.7"
+    "sonner": "^2.0.7",
+    "yargs": "^18.0.0"
   },
   "devDependencies": {
     "@eslint/eslintrc": "^3",
