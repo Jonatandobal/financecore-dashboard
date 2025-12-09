@@ -50,6 +50,9 @@ export default function HemisferiaDashboard() {
     setDivisas(newDivisas);
   }, [divisas, setDivisas]);
 
+  // TODO: Temporarily bypassing authentication for full view
+  // Uncomment the following when ready to re-enable login
+  /*
   // Show loading state while checking authentication
   if (authLoading) {
     return (
@@ -66,6 +69,7 @@ export default function HemisferiaDashboard() {
   if (!isAuthenticated) {
     return <LoginPage />
   }
+  */
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-50 via-blue-50/30 to-purple-50/30 dark:from-gray-900 dark:via-blue-950/20 dark:to-purple-950/20 transition-colors duration-500">
